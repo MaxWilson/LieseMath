@@ -1,0 +1,7 @@
+*.json text=auto
+*.ts* text=auto
+*.config text=auto
+*.fs text=auto
+*.sln text=auto
+*.fsproj text=auto
+*.html text=auto

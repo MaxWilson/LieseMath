@@ -1,0 +1,37 @@
+{
+  "name": "beast",
+  "version": "0.0.1",
+  "description": "Brain-dead simple simulator for 5E combat",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "build": "fable",
+    "watch": "fable -w --target watch"
+  },
+  "keywords": [
+    "5e",
+    "Monte",
+    "Carlo",
+    "dnd",
+    "combat",
+    "crpg",
+    "rpg"
+  ],
+  "author": "Max Wilson",
+  "license": "ISC",
+  "devDependencies": {
+    "fable-compiler": "^0.5.11",
+    "source-map-loader": "^0.1.5",
+    "webpack": "^1.13.2",
+    "webpack-dev-server": "^1.15.1"
+  },
+  "dependencies": {
+    "core-js": "^2.4.1",
+    "fable-core": "^0.5.5",
+    "fable-import-express": "0.0.11",
+    "fable-import-react": "^0.5.1",
+    "marked": "^0.3.6",
+    "react": "^15.3.1",
+    "react-dom": "^15.3.1"
+  }
+}
