@@ -16,11 +16,11 @@ type CBState = { data: string }
 
 type HelloBox() as this =
     inherit React.Component<unit, CBState>()
-    do this.state <- { data = "Hello world!" }
+    let prob = MathProblems()
+    do this.state <- { data = prob.CurrentProblem }
     
     member x.handleSubmit (e: FormEvent) =
         let msg  = x.state.data
-        x.setState { data = msg + "!" }
         e.preventDefault()
 
     member x.componentDidMount () = ()
@@ -32,6 +32,8 @@ type HelloBox() as this =
             R.input [
                 Type "submit"
                 Value (U2.Case1 "OK")
-                OnClick (fun _ -> x.setState { data = x.state.data + "!" })
+                OnClick (fun _ -> 
+                            prob.Advance()
+                            x.setState { data = prob.CurrentProblem })
             ] []
         ]
