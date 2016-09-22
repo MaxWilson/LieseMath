@@ -1,0 +1,17 @@
+node_modules
+temp
+public/bundle*
+publish
+build
+bin
+obj
+.vs
+*.sln
+*.fsproj
+*.fsx
+*.json
+public
+source
+webpack.*
+LICENSE
+README.md
