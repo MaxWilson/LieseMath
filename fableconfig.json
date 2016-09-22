@@ -9,7 +9,7 @@
   "targets": {
     "watch": {
       "scripts": {
-        "postbuild": "webpack-dev-server --colors --hot --content-base public/"
+        "postbuild": "webpack-dev-server --colors --hot --config webpack.dev.config --content-base public/"
       }
     }
   }
