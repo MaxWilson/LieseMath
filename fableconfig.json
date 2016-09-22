@@ -4,7 +4,7 @@
   "projFile": "./BadarniMath.fsproj",
   "outDir": "temp",
   "scripts": {
-    "postbuild": "webpack"
+    "postbuild": "webpack --config webpack.dev.config.js"
   },
   "targets": {
     "watch": {
