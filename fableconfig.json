@@ -1,7 +1,7 @@
 {
   "module": "commonjs",
   "sourceMaps": true,
-  "projFile": "./Beast.fsproj",
+  "projFile": "./BadarniMath.fsproj",
   "outDir": "temp",
   "scripts": {
     "postbuild": "webpack"
