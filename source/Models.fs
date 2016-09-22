@@ -6,7 +6,7 @@ open Fable.Import
 
 type MathProblems() =
     let nextProblem() =
-        let nextNumber() = JS.Math.random() * 12. |> int
+        let nextNumber() = (JS.Math.random() * 12. |> int) + 1
         let j, k = nextNumber(), nextNumber()
         (j, k, j*k)
     let mutable problem = nextProblem()
