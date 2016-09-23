@@ -27,24 +27,27 @@ type HelloBox() as this =
 
     member x.render () =        
         let numKey (n: int) =
-            R.input [
-                    Type "submit"
-                    Value (U2.Case1 (string n))
+            R.button [
                     OnClick (fun _ ->
                                 prob.Advance()
                                 x.setState { data = prob.CurrentProblem })
-                ] []
-        R.div [ClassName "commentBox"] [
+                    ClassName "numkey"
+                ] [unbox (n.ToString())]
+        R.div [ClassName "container"] [
             // Use ReactHelper.com to build a React Component from a type
-            R.h2 [] [unbox x.state.data]
-            numKey 1
-            numKey 2
-            numKey 3
-            numKey 4
-            numKey 5
-            numKey 6
-            numKey 7
-            numKey 8
-            numKey 9
-            numKey 0
+            R.h2 [ClassName "numDisplay"] [unbox x.state.data]
+            R.div [ClassName "keyList"] [
+                numKey 1
+                numKey 2
+                numKey 3
+                numKey 4
+                numKey 5
+                numKey 6
+                numKey 7
+                numKey 8
+                numKey 9
+                R.button [ClassName "numkey"] [unbox "Backspace"]
+                numKey 0
+                R.button [ClassName "numkey"] [unbox "ENTER"]
+            ]
         ]

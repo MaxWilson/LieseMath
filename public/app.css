@@ -1,0 +1,35 @@
+html { height: 100% }
+body { height: 95% }
+
+#content { height: 100%; width: 100% }
+
+.container {
+  display: inline-flex;
+  flex-direction: column;  
+  height: 100%;
+  width: 100%;
+  flex: 1 1 100%;
+}
+
+.numDisplay {
+  border: 2px solid black;
+  padding: 5px;
+  flex: 1 1 30%;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.keyList {
+  flex-direction: row;
+  display: inline-flex;
+  flex-wrap: wrap;
+  flex: 1 1 60%;
+}
+
+.numkey {
+  flex: 1 1 30%;
+  font-size: 200%;
+}
+
+

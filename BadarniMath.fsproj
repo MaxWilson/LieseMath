@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="public\index.html" />
+    <None Include="public\app.css" />
     <Compile Include="node_modules/fable-import-express/Fable.Import.Express.fs" />
     <Compile Include="node_modules/fable-import-react/Fable.Import.React.fs" />
     <Compile Include="node_modules/fable-import-react/Fable.Helpers.React.fs" />
