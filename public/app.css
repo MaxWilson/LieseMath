@@ -3,11 +3,16 @@ body { height: 95% }
 
 #content { height: 100%; width: 100% }
 
-.container {
+.shell {
   display: inline-flex;
-  flex-direction: column;  
+  flex-direction: row;  
   height: 100%;
   width: 100%;
+}
+
+.keypad {
+  display: inline-flex;
+  flex-direction: column;  
   flex: 1 1 100%;
 }
 
@@ -32,4 +37,36 @@ body { height: 95% }
   font-size: 200%;
 }
 
+.hintbox {
+  flex: 1 1 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5em;
+  border-left: 10px solid transparent;
+}
 
+.hide { 
+  display: none;
+}
+
+.hinttable {
+    table-layout: fixed;
+}
+
+.hintcell {
+  border: 1px solid black;
+  padding: 5px;
+  text-align: center;
+  width: 40px;
+}
+
+.needsreview {
+  background-color: red;
+  color: white;
+}
+
+.correct {
+  background-color: green;
+  color: white;
+}
