@@ -1,0 +1,72 @@
+html { height: 100% }
+body { height: 95% }
+
+#content { height: 100%; width: 100% }
+
+.shell {
+  display: inline-flex;
+  flex-direction: row;  
+  height: 100%;
+  width: 100%;
+}
+
+.keypad {
+  display: inline-flex;
+  flex-direction: column;  
+  flex: 1 1 100%;
+}
+
+.numDisplay {
+  border: 2px solid black;
+  padding: 5px;
+  flex: 1 1 30%;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.keyList {
+  flex-direction: row;
+  display: inline-flex;
+  flex-wrap: wrap;
+  flex: 1 1 60%;
+}
+
+.numkey {
+  flex: 1 1 30%;
+  font-size: 200%;
+}
+
+.hintbox {
+  flex: 1 1 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5em;
+  border-left: 10px solid transparent;
+}
+
+.hide { 
+  display: none;
+}
+
+.hinttable {
+    table-layout: fixed;
+}
+
+.hintcell {
+  border: 1px solid black;
+  padding: 5px;
+  text-align: center;
+  width: 40px;
+}
+
+.needsreview {
+  background-color: red;
+  color: white;
+}
+
+.correct {
+  background-color: green;
+  color: white;
+}

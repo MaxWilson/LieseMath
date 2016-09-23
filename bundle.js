@@ -69,7 +69,7 @@
 	
 	__webpack_require__(176);
 	
-	react_dom.render(react.createElement.apply(react, [_Components.HelloBox, _fableCore.Util.toPlainJsObj()].concat([])), document.getElementById("content"));
+	react_dom.render(react.createElement.apply(react, [_Components.MathBox, _fableCore.Util.toPlainJsObj()].concat([])), document.getElementById("content"));
 
 
 /***/ },
@@ -21447,7 +21447,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.HelloBox = exports.CBState = undefined;
+	exports.MathBox = exports.HintTable = exports.HintProps = exports.AnswerState = exports.MathBoxState = undefined;
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
@@ -21461,20 +21461,23 @@
 	
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 	
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+	
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var CBState = exports.CBState = function () {
-	    function CBState(data) {
-	        _classCallCheck(this, CBState);
+	var MathBoxState = exports.MathBoxState = function () {
+	    function MathBoxState(data, showHints) {
+	        _classCallCheck(this, MathBoxState);
 	
 	        this.data = data;
+	        this.showHints = showHints;
 	    }
 	
-	    _createClass(CBState, [{
+	    _createClass(MathBoxState, [{
 	        key: "Equals",
 	        value: function Equals(other) {
 	            return _fableCore.Util.equalsRecords(this, other);
@@ -21486,62 +21489,182 @@
 	        }
 	    }]);
 	
-	    return CBState;
+	    return MathBoxState;
 	}();
 	
-	_fableCore.Util.setInterfaces(CBState.prototype, ["FSharpRecord", "System.IEquatable", "System.IComparable"], "Components.CBState");
+	_fableCore.Util.setInterfaces(MathBoxState.prototype, ["FSharpRecord", "System.IEquatable", "System.IComparable"], "Components.MathBoxState");
 	
-	var HelloBox = exports.HelloBox = function (_Component) {
-	    _inherits(HelloBox, _Component);
+	var AnswerState = exports.AnswerState = function () {
+	    function AnswerState(caseName, fields) {
+	        _classCallCheck(this, AnswerState);
 	
-	    function HelloBox() {
-	        _classCallCheck(this, HelloBox);
+	        this.Case = caseName;
+	        this.Fields = fields;
+	    }
 	
-	        var _this2 = _possibleConstructorReturn(this, (HelloBox.__proto__ || Object.getPrototypeOf(HelloBox)).call(this));
+	    _createClass(AnswerState, [{
+	        key: "Equals",
+	        value: function Equals(other) {
+	            return _fableCore.Util.equalsUnions(this, other);
+	        }
+	    }, {
+	        key: "CompareTo",
+	        value: function CompareTo(other) {
+	            return _fableCore.Util.compareUnions(this, other);
+	        }
+	    }]);
+	
+	    return AnswerState;
+	}();
+	
+	_fableCore.Util.setInterfaces(AnswerState.prototype, ["FSharpUnion", "System.IEquatable", "System.IComparable"], "Components.AnswerState");
+	
+	var HintProps = exports.HintProps = function () {
+	    function HintProps(size) {
+	        _classCallCheck(this, HintProps);
+	
+	        this.size = size;
+	    }
+	
+	    _createClass(HintProps, [{
+	        key: "Equals",
+	        value: function Equals(other) {
+	            return _fableCore.Util.equalsRecords(this, other);
+	        }
+	    }, {
+	        key: "CompareTo",
+	        value: function CompareTo(other) {
+	            return _fableCore.Util.compareRecords(this, other);
+	        }
+	    }]);
+	
+	    return HintProps;
+	}();
+	
+	_fableCore.Util.setInterfaces(HintProps.prototype, ["FSharpRecord", "System.IEquatable", "System.IComparable"], "Components.HintProps");
+	
+	var HintTable = exports.HintTable = function (_Component) {
+	    _inherits(HintTable, _Component);
+	
+	    function HintTable(props) {
+	        _classCallCheck(this, HintTable);
+	
+	        var _this2 = _possibleConstructorReturn(this, (HintTable.__proto__ || Object.getPrototypeOf(HintTable)).call(this));
+	
+	        _this2.this = {
+	            contents: null
+	        };
+	        var _this = _this2.this;
+	        _this2.this.contents = _this2;
+	        _this2["init@20-233"] = 1;
+	        _this2.this.contents.state = _fableCore.List.map(function (x) {
+	            return _fableCore.List.map(function (y) {
+	                return [x * y, {
+	                    contents: new AnswerState("NoAnswer", [])
+	                }];
+	            }, _fableCore.Seq.toList(_fableCore.Seq.range(1, props.size)));
+	        }, _fableCore.Seq.toList(_fableCore.Seq.range(1, props.size)));
+	        return _this2;
+	    }
+	
+	    _createClass(HintTable, [{
+	        key: "render",
+	        value: function render() {
+	            var makeCell = function makeCell(cell) {
+	                var needsReview = cell[1].contents;
+	                return react.createElement.apply(react, ["td", {
+	                    className: function (_arg1) {
+	                        return _arg1.Case === "Good" ? "hintcell correct" : _arg1.Case === "NoAnswer" ? "hintcell" : "hintcell needsreview";
+	                    }(needsReview)
+	                }].concat([cell[0]]));
+	            };
+	
+	            var rows = _fableCore.List.map(function (rowvals) {
+	                return react.createElement.apply(react, ["tr", {}].concat(_toConsumableArray(Array.from(function (list) {
+	                    return _fableCore.List.map(makeCell, list);
+	                }(rowvals)))));
+	            }, this.this.contents.state);
+	
+	            return react.createElement.apply(react, ["table", {
+	                className: "hinttable"
+	            }].concat([react.createElement.apply(react, ["tbody", {}].concat(_toConsumableArray(Array.from(rows))))]));
+	        }
+	    }]);
+	
+	    return HintTable;
+	}(_react.Component);
+	
+	_fableCore.Util.setInterfaces(HintTable.prototype, [], "Components.HintTable");
+	
+	var MathBox = exports.MathBox = function (_Component2) {
+	    _inherits(MathBox, _Component2);
+	
+	    function MathBox() {
+	        _classCallCheck(this, MathBox);
+	
+	        var _this3 = _possibleConstructorReturn(this, (MathBox.__proto__ || Object.getPrototypeOf(MathBox)).call(this));
 	
 	        var _this = {
 	            contents: null
 	        };
-	        var _this_1 = _this2;
-	        _this2.contents = _this2;
-	        _this2.prob = new _Models.MathProblems();
-	        _this2["init@17-15"] = 1;
-	        _this2.contents.state = new CBState(_this2.prob.CurrentProblem);
-	        return _this2;
+	        var _this_1 = _this3;
+	        _this3.contents = _this3;
+	        _this3.prob = new _Models.MathProblems();
+	        _this3["init@32-234"] = 1;
+	        _this3.contents.state = new MathBoxState(_this3.prob.CurrentProblem, false);
+	        return _this3;
 	    }
 	
-	    _createClass(HelloBox, [{
-	        key: "handleSubmit",
-	        value: function handleSubmit(e) {
-	            var msg = this.state.data;
-	            e.preventDefault();
-	        }
-	    }, {
-	        key: "componentDidMount",
-	        value: function componentDidMount() {}
-	    }, {
+	    _createClass(MathBox, [{
 	        key: "render",
 	        value: function render() {
-	            var _this3 = this;
+	            var _this4 = this;
+	
+	            var numKey = function numKey(n) {
+	                return react.createElement.apply(react, ["button", {
+	                    onClick: function onClick(_arg1) {
+	                        _this4.prob.Advance();
+	
+	                        _this4.setState(function () {
+	                            var inputRecord = _this4.state;
+	                            return new MathBoxState(_this4.prob.CurrentProblem, inputRecord.showHints);
+	                        }());
+	                    },
+	                    className: "numkey"
+	                }].concat([String(n)]));
+	            };
 	
 	            return react.createElement.apply(react, ["div", {
-	                className: "commentBox"
-	            }].concat([react.createElement.apply(react, ["h2", {}].concat([this.state.data])), react.createElement.apply(react, ["input", {
-	                type: "submit",
-	                value: "OK",
-	                onClick: function onClick(_arg1) {
-	                    _this3.prob.Advance();
-	
-	                    _this3.setState(new CBState(_this3.prob.CurrentProblem));
+	                className: "shell"
+	            }].concat([react.createElement.apply(react, ["div", {
+	                className: "keypad"
+	            }].concat([react.createElement.apply(react, ["h2", {
+	                className: "numDisplay"
+	            }].concat([this.state.data])), react.createElement.apply(react, ["div", {
+	                className: "keyList"
+	            }].concat([numKey(1), numKey(2), numKey(3), numKey(4), numKey(5), numKey(6), numKey(7), numKey(8), numKey(9), react.createElement.apply(react, ["button", {
+	                className: "numkey"
+	            }].concat(["Backspace"])), numKey(0), react.createElement.apply(react, ["button", {
+	                className: "numkey"
+	            }].concat(["ENTER"])), react.createElement.apply(react, ["button", {
+	                className: "numkey",
+	                onClick: function onClick(_arg2) {
+	                    _this4.setState(function () {
+	                        var inputRecord = _this4.state;
+	                        var showHints = !_this4.state.showHints;
+	                        return new MathBoxState(inputRecord.data, showHints);
+	                    }());
 	                }
-	            }].concat([]))]));
+	            }].concat([this.state.showHints ? "Hide hints" : "Show hints"]))]))])), react.createElement.apply(react, ["div", {
+	                className: this.state.showHints ? "hintbox" : "hintbox hide"
+	            }].concat([react.createElement.apply(react, [HintTable, _fableCore.Util.toPlainJsObj(new HintProps(12))].concat([]))]))]));
 	        }
 	    }]);
 
-	    return HelloBox;
+	    return MathBox;
 	}(_react.Component);
 
-	_fableCore.Util.setInterfaces(HelloBox.prototype, [], "Components.HelloBox");
+	_fableCore.Util.setInterfaces(MathBox.prototype, [], "Components.MathBox");
 
 
 /***/ },
@@ -26147,7 +26270,7 @@
 	        key: "nextProblem",
 	        value: function nextProblem() {
 	            var nextNumber = function nextNumber(unitVar0) {
-	                return Math.floor(Math.random() * 12);
+	                return Math.floor(Math.random() * 12) + 1;
 	            };
 	
 	            var patternInput = [nextNumber(), nextNumber()];
