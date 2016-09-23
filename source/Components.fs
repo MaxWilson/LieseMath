@@ -36,6 +36,8 @@ type MathBox() as this =
     let updateState() = this.setState this.state
     do this.state <- { showHints = false }
     // written dynamically because I haven't figured out the right JS types
+    let toggleHints() =
+        this.setState({ this.state with showHints = not this.state.showHints })
     let onKeyDown (ev : obj) = 
         let key : string = ev?key :> obj :?> string // double cast to work around Fable issue
         let x = JS.Number.parseInt key
@@ -50,6 +52,8 @@ type MathBox() as this =
             prob.Backspace()
             updateState()
             ev?preventDefault() |> ignore
+        else if key = "h" or key = "H" then
+            toggleHints()
     member this.componentDidMount() =
         External.configureOnKeydown onKeyDown
     member this.render () = 
@@ -85,9 +89,7 @@ type MathBox() as this =
                         keyPadButton "ENTER" prob.Advance
                         R.button [
                             ClassName "numkey"
-                            OnClick (fun _ ->
-                                      this.setState({ this.state with showHints = not this.state.showHints })
-                            )
+                            OnClick (fun _ -> toggleHints())
                         ] [unbox (if this.state.showHints then "Hide hints" else "Show hints")]
                     ]
                 ]
