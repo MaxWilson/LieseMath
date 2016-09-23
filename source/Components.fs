@@ -12,6 +12,10 @@ module R = Fable.Helpers.React
 open R.Props
 open Fable.Import.React
 
+module External =
+    [<Emit("document.body.addEventListener('keydown', $0, true)")>]
+    let configureOnKeydown ev = failwith "JS only"
+
 type MathBoxState = { showHints: bool }
 type HintState = unit
 type HintProps = { cells: (int * AnswerState ref) list list }
@@ -29,17 +33,38 @@ type HintTable(props: HintProps) =
 type MathBox() as this =
     inherit React.Component<unit, MathBoxState>()
     let prob = MathProblems(12)
-    do this.state <- { showHints = false }    
-    member x.render () = 
-        let numKey (n: int) =
+    let updateState() = this.setState this.state
+    do this.state <- { showHints = false }
+    // written dynamically because I haven't figured out the right JS types
+    let onKeyDown (ev : obj) = 
+        let key : string = ev?key :> obj :?> string // double cast to work around Fable issue
+        let x = JS.Number.parseInt key
+        if not (JS.Number.isNaN x) then
+            prob.KeyPress(int x)
+            updateState()
+        else if key = "Enter" then
+            prob.Advance()
+            updateState()
+            ev?preventDefault() |> ignore
+        else if key = "Backspace" then
+            prob.Backspace()
+            updateState()
+            ev?preventDefault() |> ignore
+    member this.componentDidMount() =
+        External.configureOnKeydown onKeyDown
+    member this.render () = 
+        let keyPadButton label onClick =
             R.button [
                     OnClick (fun _ ->
-                                prob.Advance()
-                                x.setState x.state)
+                                onClick()
+                                updateState())
                     ClassName "numkey"
-                ] [unbox (n.ToString())]
+                ] [unbox label]
+        let numKey (n: int) = keyPadButton (n.ToString()) (fun() -> prob.KeyPress n)
         // there's a shell which holds both the hint box and the interaction keypad
-        R.div [ClassName "shell columnDisplay"] [
+        R.div [
+            ClassName "shell columnDisplay"
+        ] [
             R.h3 [ClassName "scoreDisplay"] [unbox ("Score: " + prob.Score.ToString())]
             R.div [ClassName "shell rowDisplay"] [
                 R.div [ClassName "keypad"] [
@@ -55,18 +80,18 @@ type MathBox() as this =
                         numKey 7
                         numKey 8
                         numKey 9
-                        R.button [ClassName "numkey"] [unbox "Backspace"]
+                        keyPadButton "Backspace" prob.Backspace
                         numKey 0
-                        R.button [ClassName "numkey"] [unbox "ENTER"]
+                        keyPadButton "ENTER" prob.Advance
                         R.button [
                             ClassName "numkey"
                             OnClick (fun _ ->
-                                      x.setState({ x.state with showHints = not x.state.showHints })
+                                      this.setState({ this.state with showHints = not this.state.showHints })
                             )
-                        ] [unbox (if x.state.showHints then "Hide hints" else "Show hints")]
+                        ] [unbox (if this.state.showHints then "Hide hints" else "Show hints")]
                     ]
                 ]
-                (if x.state.showHints then 
+                (if this.state.showHints then 
                     R.com<HintTable, HintProps, HintState> { 
                         cells = prob.HintCells
                     } []                
