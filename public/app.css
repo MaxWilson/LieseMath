@@ -4,10 +4,21 @@ body { height: 95% }
 #content { height: 100%; width: 100% }
 
 .shell {
-  display: inline-flex;
-  flex-direction: row;  
   height: 100%;
   width: 100%;
+  display: inline-flex;
+}
+
+.rowDisplay {
+  flex-direction: row;
+}
+
+.columnDisplay {
+  flex-direction: column;
+}
+
+.scoreDisplay {
+    text-align: center
 }
 
 .keypad {

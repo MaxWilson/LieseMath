@@ -19,7 +19,7 @@ type MathProblems(size: int) =
         let j, k, _ = problem
         sprintf "%d x %d = ??" j k
     member x.Advance() =
-        score <- score + 1
+        score <- score + 100
         let x, y, ans = problem
         let answerCell = cells.[x-1].[y-1] |> snd
         answerCell := if x % 2 = 0 then NeedsReview else Good
