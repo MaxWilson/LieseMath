@@ -67,11 +67,8 @@ type MathBox() as this =
                     ] [unbox (if x.state.showHints then "Hide hints" else "Show hints")]
                 ]
             ]
-            R.div 
-              [
-                    ClassName (if x.state.showHints then "hintbox" else "hintbox hide")
-              ] 
-              [
-                R.com<HintTable, HintProps, HintState> { size = 12 } []
-              ]
+            (if x.state.showHints then 
+                    R.com<HintTable, HintProps, HintState> { size = 12 } []                
+             else
+                Unchecked.defaultof<ReactElement<obj>>)
         ]
