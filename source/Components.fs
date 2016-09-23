@@ -13,25 +13,22 @@ open R.Props
 open Fable.Import.React
 
 type MathBoxState = { data: string; showHints: bool }
-type AnswerState = | NeedsReview | Good | NoAnswer
-type HintState = (int * AnswerState ref) list list
-type HintProps = { size: int }
+type HintState = unit
+type HintProps = { cells: (int * AnswerState ref) list list }
 
-type HintTable(props: HintProps) as this = 
+type HintTable(props: HintProps) = 
     inherit React.Component<HintProps, HintState>()
-    do this.state <- [1..props.size] |> List.map (fun x ->
-                                            [1..props.size] |> List.map (fun y -> x * y, ref NoAnswer))
     member x.render() =
         let makeCell (cell: int * AnswerState ref) =
             let needsReview = !(snd cell)
             R.td [ClassName (needsReview |> function | NeedsReview -> "hintcell needsreview" | Good -> "hintcell correct" | NoAnswer -> "hintcell")] [unbox (fst cell)]
 
-        let rows = this.state |> List.map (fun rowvals -> R.tr [] (rowvals |> List.map makeCell))
+        let rows = props.cells |> List.map (fun rowvals -> R.tr [] (rowvals |> List.map makeCell))
         R.table [ClassName "hinttable"] [R.tbody [] rows]
 
 type MathBox() as this =
     inherit React.Component<unit, MathBoxState>()
-    let prob = MathProblems()
+    let prob = MathProblems(12)
     do this.state <- { data = prob.CurrentProblem; showHints = false }    
     member x.render () = 
         let numKey (n: int) =
@@ -68,7 +65,9 @@ type MathBox() as this =
                 ]
             ]
             (if x.state.showHints then 
-                    R.com<HintTable, HintProps, HintState> { size = 12 } []                
+                R.com<HintTable, HintProps, HintState> { 
+                    cells = prob.HintCells
+                } []                
              else
                 Unchecked.defaultof<ReactElement<obj>>)
         ]
