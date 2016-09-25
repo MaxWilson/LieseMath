@@ -18,12 +18,27 @@ body { height: 95% }
 }
 
 .scoreDisplay {
-    text-align: center
+  text-align: center
+}
+
+.settingsBar {
+  flex-direction: row;
+  display: inline-flex;
+  justify-content: flex-end;
+}
+
+.resetButton {
+  flex: 0 1 auto;
+  font-size: 200%;
+}
+
+.optionsButton {
+  font-size: 200%;
 }
 
 .keypad {
   display: inline-flex;
-  flex-direction: column;  
+  flex-direction: column;
   flex: 1 1 100%;
 }
 
@@ -48,16 +63,20 @@ body { height: 95% }
   font-size: 200%;
 }
 
-.hinttable {
-  flex: 1 1 100%;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.5em;
+.hintDisplay {
+  flex: 0 1 100%;
   border-left: 10px solid transparent;
+  display: inline-flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-flow: column nowrap;
 }
 
-.hide { 
+.hinttable {
+  font-size: 1.5em;
+}
+
+.hide {
   display: none;
 }
 
@@ -76,4 +95,10 @@ body { height: 95% }
 .correct {
   background-color: green;
   color: white;
+}
+
+.reviewList {
+    color: red;
+    font-weight: bold;
+    font-size: 130%;
 }
