@@ -105,3 +105,24 @@ body { height: 95% }
   font-size: 130%;
   width: 70%;
 }
+
+.optionsDisplay {
+  display: flex;
+  flex: 0 1 100%;
+  justify-content: space-around;
+  align-items: center;
+  flex-flow: column nowrap;
+  padding: 4px;
+}
+
+.optionInput {
+  padding: 2px;
+  font-size: 150%;
+  margin: 10px;
+  flex: 0 1 auto;
+}
+
+.optionDoneButton {
+  flex: 0 1 auto;
+  font-size: 200%;
+}

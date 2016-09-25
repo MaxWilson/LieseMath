@@ -16,7 +16,7 @@ module External =
     [<Emit("document.body.addEventListener('keydown', $0, true)")>]
     let configureOnKeydown ev = failwith "JS only"
 
-type MathBoxState = { showHints: bool }
+type MathBoxViewState = { showOptions: bool; showHints: bool; }
 type HintState = unit
 type HintProps = { cells: (string * AnswerState ref) list list }
 
@@ -30,8 +30,10 @@ type HintTable(props: HintProps) =
         let rows = props.cells |> List.map (fun rowvals -> R.tr [] (rowvals |> List.map makeCell))
         R.table [ClassName "hinttable"] [R.tbody [] rows]
 
+let nothing = Unchecked.defaultof<ReactElement<obj>>
+
 type MathBox() as this =
-    inherit React.Component<unit, MathBoxState>()
+    inherit React.Component<unit, MathBoxViewState>()
     [<Emit("let cheer = new Audio('1_person_cheering-Jett_Rifkin-1851518140.mp3'); cheer.play()")>]
     let cheer() = failwith "JS only";
     [<Emit("let cheer1 = new Audio('Cheer1.m4a'); cheer1.currentTime = 0.3; cheer1.play()")>]
@@ -56,10 +58,12 @@ type MathBox() as this =
         (cheers.[n])()
     let prob = MathProblems(randomCheer, bomb)
     let updateState() = this.setState this.state
-    do this.state <- { showHints = false }
+    do this.state <- { showOptions = false; showHints = false }
     // written dynamically because I haven't figured out the right JS types
     let toggleHints() =
         this.setState({ this.state with showHints = not this.state.showHints })
+    let toggleOptions() =
+        this.setState({ this.state with showOptions = not this.state.showOptions })
     let onKeyDown (ev : obj) =
         let key : string = unbox ev?key // unbox to type-cast
         let x = JS.Number.parseInt key
@@ -84,6 +88,7 @@ type MathBox() as this =
             ev?preventDefault() |> ignore
         | "h" ->
             toggleHints()
+        | "o" -> toggleOptions()
         | "r" ->
             if (unbox ev?ctrlKey) then
                 prob.Reset()
@@ -105,9 +110,19 @@ type MathBox() as this =
         // there's a shell which holds both the hint box and the interaction keypad
         R.div [
             ClassName "shell columnDisplay"
-        ] [
+        ] (
+        if this.state.showOptions then
+            [
+                R.div [ClassName "optionsDisplay"] [
+                    R.input [Placeholder "12"; ClassName "optionInput"][]
+                    R.button [ClassName "optionDoneButton"; onClickDo toggleOptions][unbox "OK"]
+                ]
+            ]
+        else
+            [
             R.div [ClassName "settingsBar"] [
                 R.button [ClassName "resetButton"; onClickDo prob.Reset] [unbox "Reset"]
+                R.button [ClassName "optionsButton"; onClickDo toggleOptions] [unbox "Options"]
             ]
             R.h3 [ClassName "scoreDisplay"] [unbox ("Score: " + prob.Score.ToString())]
             R.div [ClassName "shell rowDisplay"] [
@@ -137,10 +152,8 @@ type MathBox() as this =
                             R.ul [ClassName "reviewList"] (
                                 prob.ReviewList |> List.map (fun(x, y, ans, given) -> R.li [] [unbox (sprintf "%d x %d = %s (you guessed %s)" x y ans given)])
                             )
-                            else
-                                Unchecked.defaultof<ReactElement<obj>>)
+                            else nothing)
                     ]
-                 else
-                    Unchecked.defaultof<ReactElement<obj>>)
+                    else nothing)
             ]
-        ]
+        ])
