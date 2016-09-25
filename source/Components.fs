@@ -103,9 +103,18 @@ type MathBox() as this =
                     ]
                 ]
                 (if this.state.showHints then
-                    R.com<HintTable, HintProps, HintState> {
-                        cells = prob.HintCells
-                    } []
+                    R.div [ClassName "hintDisplay"] [
+                        R.com<HintTable, HintProps, HintState> {
+                            cells = prob.HintCells
+                        } []
+                        // show review list, if any
+                        (if prob.ReviewList.Length > 0 then
+                            R.ul [ClassName "reviewList"] (
+                                prob.ReviewList |> List.map (fun(x, y, ans, given) -> R.li [] [unbox (sprintf "%d x %d = %s (you guessed %s)" x y ans given)])
+                            )
+                            else
+                                Unchecked.defaultof<ReactElement<obj>>)
+                    ]
                  else
                     Unchecked.defaultof<ReactElement<obj>>)
             ]

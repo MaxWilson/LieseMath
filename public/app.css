@@ -63,13 +63,17 @@ body { height: 95% }
   font-size: 200%;
 }
 
-.hinttable {
+.hintDisplay {
   flex: 0 1 100%;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.5em;
   border-left: 10px solid transparent;
+  display: inline-flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-flow: column nowrap;
+}
+
+.hinttable {
+  font-size: 1.5em;
 }
 
 .hide {
@@ -91,4 +95,10 @@ body { height: 95% }
 .correct {
   background-color: green;
   color: white;
+}
+
+.reviewList {
+    color: red;
+    font-weight: bold;
+    font-size: 130%;
 }
