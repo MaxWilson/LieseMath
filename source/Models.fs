@@ -21,17 +21,18 @@ type MathProblems(size: int) =
         let j, k, _ = problem
         sprintf "%d x %d = %s" j k (if currentAnswer.Length > 0 then currentAnswer else "??")
     member this.Advance() =
-        let x, y, ans = problem
-        let answerCell = cells.[x-1].[y-1] |> snd
-        if ans = currentAnswer then
-            score <- score + 100
-            answerCell := Good
-        else
-            score <- score - 100
-            answerCell := NeedsReview
-            reviewList <- ((x, y, ans, currentAnswer) :: reviewList)
-        currentAnswer <- "";
-        problem <- nextProblem()
+        if currentAnswer.Length > 0 then
+            let x, y, ans = problem
+            let answerCell = cells.[x-1].[y-1] |> snd
+            if ans = currentAnswer then
+                score <- score + 100
+                answerCell := Good
+            else
+                score <- score - 100
+                answerCell := NeedsReview
+                reviewList <- ((x, y, ans, currentAnswer) :: reviewList)
+            currentAnswer <- "";
+            problem <- nextProblem()
     member this.HintCells =
         cells
     member this.ReviewList =
