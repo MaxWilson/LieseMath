@@ -18,12 +18,27 @@ body { height: 95% }
 }
 
 .scoreDisplay {
-    text-align: center
+  text-align: center
+}
+
+.settingsBar {
+  flex-direction: row;
+  display: inline-flex;
+  justify-content: flex-end;
+}
+
+.resetButton {
+  flex: 0 1 auto;
+  font-size: 200%;
+}
+
+.optionsButton {
+  font-size: 200%;
 }
 
 .keypad {
   display: inline-flex;
-  flex-direction: column;  
+  flex-direction: column;
   flex: 1 1 100%;
 }
 
@@ -49,7 +64,7 @@ body { height: 95% }
 }
 
 .hinttable {
-  flex: 1 1 100%;
+  flex: 0 1 100%;
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -57,7 +72,7 @@ body { height: 95% }
   border-left: 10px solid transparent;
 }
 
-.hide { 
+.hide {
   display: none;
 }
 

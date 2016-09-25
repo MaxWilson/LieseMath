@@ -20,7 +20,7 @@ type MathBoxState = { showHints: bool }
 type HintState = unit
 type HintProps = { cells: (int * AnswerState ref) list list }
 
-type HintTable(props: HintProps) = 
+type HintTable(props: HintProps) =
     inherit React.Component<HintProps, HintState>()
     member x.render() =
         let makeCell (cell: int * AnswerState ref) =
@@ -38,8 +38,8 @@ type MathBox() as this =
     // written dynamically because I haven't figured out the right JS types
     let toggleHints() =
         this.setState({ this.state with showHints = not this.state.showHints })
-    let onKeyDown (ev : obj) = 
-        let key : string = ev?key :> obj :?> string // double cast to work around Fable issue
+    let onKeyDown (ev : obj) =
+        let key : string = unbox ev?key // unbox to type-cast
         let x = JS.Number.parseInt key
         if not (JS.Number.isNaN x) then
             prob.KeyPress(int x)
@@ -52,16 +52,22 @@ type MathBox() as this =
             prob.Backspace()
             updateState()
             ev?preventDefault() |> ignore
-        else if key = "h" or key = "H" then
+        else if key = "h" || key = "H" then
             toggleHints()
+        else if ((key = "R" || key = "r") && (unbox ev?ctrlKey)) then
+            prob.Reset()
+            updateState()
+            ev?preventDefault() |> ignore
     member this.componentDidMount() =
         External.configureOnKeydown onKeyDown
-    member this.render () = 
+    member this.render () =
+        let onClickDo handler =
+            OnClick (fun _ ->
+                        handler()
+                        updateState())
         let keyPadButton label onClick =
             R.button [
-                    OnClick (fun _ ->
-                                onClick()
-                                updateState())
+                    onClickDo onClick
                     ClassName "numkey"
                 ] [unbox label]
         let numKey (n: int) = keyPadButton (n.ToString()) (fun() -> prob.KeyPress n)
@@ -69,6 +75,9 @@ type MathBox() as this =
         R.div [
             ClassName "shell columnDisplay"
         ] [
+            R.div [ClassName "settingsBar"] [
+                R.button [ClassName "resetButton"; onClickDo prob.Reset] [unbox "Reset"]
+            ]
             R.h3 [ClassName "scoreDisplay"] [unbox ("Score: " + prob.Score.ToString())]
             R.div [ClassName "shell rowDisplay"] [
                 R.div [ClassName "keypad"] [
@@ -93,10 +102,10 @@ type MathBox() as this =
                         ] [unbox (if this.state.showHints then "Hide hints" else "Show hints")]
                     ]
                 ]
-                (if this.state.showHints then 
-                    R.com<HintTable, HintProps, HintState> { 
+                (if this.state.showHints then
+                    R.com<HintTable, HintProps, HintState> {
                         cells = prob.HintCells
-                    } []                
+                    } []
                  else
                     Unchecked.defaultof<ReactElement<obj>>)
             ]
