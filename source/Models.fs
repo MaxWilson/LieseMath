@@ -6,7 +6,7 @@ open Fable.Import
 
 type AnswerState = | NeedsReview | Good | NoAnswer
 
-type MathProblems(size: int) =
+type MathProblems(size: int, onCorrect: _ -> _, onIncorrect: _ -> _) =
     let nextProblem() =
         let nextNumber() = (JS.Math.random() * (float size) |> int) + 1
         let j, k = nextNumber(), nextNumber()
@@ -27,10 +27,12 @@ type MathProblems(size: int) =
             if ans = currentAnswer then
                 score <- score + 100
                 answerCell := Good
+                onCorrect()
             else
                 score <- score - 100
                 answerCell := NeedsReview
                 reviewList <- ((x, y, ans, currentAnswer) :: reviewList)
+                onIncorrect()
             currentAnswer <- "";
             problem <- nextProblem()
     member this.HintCells =

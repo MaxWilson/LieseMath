@@ -32,7 +32,11 @@ type HintTable(props: HintProps) =
 
 type MathBox() as this =
     inherit React.Component<unit, MathBoxState>()
-    let prob = MathProblems(12)
+    [<Emit("let cheer = new Audio('1_person_cheering-Jett_Rifkin-1851518140.mp3'); cheer.play()")>]
+    let cheer() = failwith "JS only";
+    [<Emit("let bomb = new Audio('Grenade Explosion-SoundBible.com-2100581469.mp3'); bomb.play()")>]
+    let bomb() = failwith "JS only";
+    let prob = MathProblems(12, cheer, bomb)
     let updateState() = this.setState this.state
     do this.state <- { showHints = false }
     // written dynamically because I haven't figured out the right JS types
