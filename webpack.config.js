@@ -2,7 +2,6 @@ var path = require("path");
 var webpack = require("webpack");
 
 var cfg = {
-  devtool: "source-map",
   entry: [
     "./temp/source/main.js"
   ],
@@ -10,6 +9,13 @@ var cfg = {
     path: path.join(__dirname, "publish"),
     filename: "bundle.js"
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify('production')
+      }
+    })
+  ],
   module: {
     preLoaders: [
       {
