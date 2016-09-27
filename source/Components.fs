@@ -34,9 +34,25 @@ type MathBox() as this =
     inherit React.Component<unit, MathBoxState>()
     [<Emit("let cheer = new Audio('1_person_cheering-Jett_Rifkin-1851518140.mp3'); cheer.play()")>]
     let cheer() = failwith "JS only";
+    [<Emit("let cheer1 = new Audio('cheer1.m4a'); cheer1.play()")>]
+    let cheer1() = failwith "JS only";
+    [<Emit("let cheer2 = new Audio('cheer2.m4a'); cheer2.play()")>]
+    let cheer2() = failwith "JS only";
+    [<Emit("let cheer3 = new Audio('cheer3.m4a'); cheer3.play()")>]
+    let cheer3() = failwith "JS only";
+    [<Emit("let cheer4 = new Audio('cheer4.m4a'); cheer4.play()")>]
+    let cheer4() = failwith "JS only";
+    [<Emit("let cheer5 = new Audio('cheer5.m4a'); cheer5.play()")>]
+    let cheer5() = failwith "JS only";
+    [<Emit("let cheer6 = new Audio('cheer6.m4a'); cheer6.play()")>]
+    let cheer6() = failwith "JS only";
     [<Emit("let bomb = new Audio('Grenade Explosion-SoundBible.com-2100581469.mp3'); bomb.play()")>]
     let bomb() = failwith "JS only";
-    let prob = MathProblems(12, cheer, bomb)
+    let cheers = [|cheer; cheer1; cheer2; cheer3; cheer4; cheer5; cheer6|];
+    let randomCheer() =
+        let n = JS.Math.random() * (float cheers.Length) |> int
+        (cheers.[n])()
+    let prob = MathProblems(12, randomCheer, bomb)
     let updateState() = this.setState this.state
     do this.state <- { showHints = false }
     // written dynamically because I haven't figured out the right JS types
