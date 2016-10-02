@@ -47,32 +47,49 @@ let ComputeAnswer mathType mathBase lhs rhs =
 
 let FormatProblem mathType mathBase lhs rhs =
     sprintf "%s x %s" (FormatByBase mathBase lhs) (FormatByBase mathBase rhs)
+
+/// PersistentSetting is a setting which is cached between sessions in local storage
+type PersistentSetting<'a when 'a: equality>(name: string, defaultValue: 'a) =
+    let key = "Setting." + name
+    let mutable storedValue =
+        let stringVal = Fable.Import.Browser.localStorage.[key]
+        if stringVal = null then
+            defaultValue
+        else
+            Fable.Core.JsInterop.ofJson<'a>(unbox stringVal)
+    member this.Value
+        with get() = storedValue
+        and set(v) =
+            if storedValue <> v then
+                Fable.Import.Browser.localStorage.[key] <- Fable.Core.JsInterop.toJson(v)
+                storedValue <- v
+
 type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
-    let mutable size = 12;
-    let mutable mathBase = Enums.Decimal;
-    let mutable mathType = Enums.Times
+    let size = PersistentSetting("size", 12);
+    let mathBase = PersistentSetting("mathBase", Enums.Decimal)
+    let mathType = PersistentSetting("mathType", Enums.Times)
     let nextProblem() =
-        let nextNumber() = (JS.Math.random() * (float size) |> int) + 1
+        let nextNumber() = (JS.Math.random() * (float size.Value) |> int) + 1
         let j, k = nextNumber(), nextNumber()
-        (j, k, ComputeAnswer mathType mathBase j k)
+        (j, k, ComputeAnswer mathType.Value mathBase.Value j k)
     let mutable problem = nextProblem()
     let mutable score = 0
     let mutable currentAnswer = "";
     let mutable reviewList = []
-    let mutable cells = [1..size] |> List.map (fun x -> [1..size] |> List.map (fun y -> ComputeAnswer mathType mathBase x y, ref NoAnswer))
+    let mutable cells = [1..size.Value] |> List.map (fun x -> [1..size.Value] |> List.map (fun y -> ComputeAnswer mathType.Value mathBase.Value x y, ref NoAnswer))
     member this.MathBase
-        with get() = mathBase
+        with get() = mathBase.Value
         and set(v) =
-            mathBase <- v
+            mathBase.Value <- v
     member this.MaxNum
-        with get() = size
+        with get() = size.Value
         and set(v) =
-            size <- v
+            size.Value <- v
     member this.MathType = mathType
     member this.Score = score
     member this.CurrentProblem =
         let j, k, _ = problem
-        sprintf "%s = %s" (FormatProblem mathType mathBase j k) (if currentAnswer.Length > 0 then currentAnswer else "??")
+        sprintf "%s = %s" (FormatProblem mathType mathBase.Value j k) (if currentAnswer.Length > 0 then currentAnswer else "??")
     member this.Advance() =
         if currentAnswer.Length > 0 then
             let x, y, ans = problem
@@ -94,7 +111,7 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
         reviewList
     member this.KeyPress (n: int) =
         // ignore keys that don't apply to this base
-        if n < (match mathBase with Decimal -> 10 | Hex -> 16 | Binary -> 2) then
+        if n < (match mathBase.Value with Decimal -> 10 | Hex -> 16 | Binary -> 2) then
             currentAnswer <- currentAnswer + (if n < 10 then n.ToString() else (65 + (n - 10)) |> char |> string)
     member this.Backspace() =
         if(currentAnswer.Length > 0) then
@@ -103,6 +120,6 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
         score <- 0
         currentAnswer <- ""
         reviewList <- []
-        cells <- [1..size] |> List.map (fun x -> [1..size] |> List.map (fun y -> ComputeAnswer mathType mathBase x y, ref NoAnswer))
+        cells <- [1..size.Value] |> List.map (fun x -> [1..size.Value] |> List.map (fun y -> ComputeAnswer mathType.Value mathBase.Value x y, ref NoAnswer))
         problem <- nextProblem()
-    member this.Keys = match mathBase with | Decimal -> DecimalKeys | Hex -> HexKeys | Binary -> BinaryKeys
+    member this.Keys = match mathBase.Value with | Decimal -> DecimalKeys | Hex -> HexKeys | Binary -> BinaryKeys

@@ -18,7 +18,7 @@ module External =
     let configureOnKeydown ev = failwith "JS only"
 
 type SoundState = On | Off | CheerOnly | BombOnly
-type MathBoxViewState = { showHints: bool; sound: SoundState; showOptions: bool;  }
+type MathBoxViewState = { showHints: bool; showOptions: bool;  }
 type HintState = unit
 type HintProps = { cells: (string * AnswerState ref) list list }
 type SelectorProps<'a> = { label: string; get: unit -> 'a; set: 'a -> unit; mapping: ('a * string) list }
@@ -54,12 +54,13 @@ type Selector<'a  when 'a: equality>(props: SelectorProps<'a>) =
 
 type IntegerInput(props: IntegerInputProps) =
     inherit React.Component<IntegerInputProps, unit>()
-    member this.render() =
-        // this is kind of hackish, but we're adjusting min/max on display
+    member this.componentWillMount() =
+        // this is kind of hackish, but we're adjusting min/max whenever settings are displayed
         if props.get() < props.min then
             props.set props.min
         elif props.get() > props.max then
             props.set props.max
+    member this.render() =
         R.div [] [
             R.text [ClassName "optionLabel"] [unbox props.label]
             R.span [ClassName "optionSpan"]
@@ -101,13 +102,14 @@ module Sounds =
     [<Emit("let bomb = new Audio('Grenade Explosion-SoundBible.com-2100581469.mp3'); bomb.play()")>]
     let bomb() = failwith "JS only";
     let cheers = [|cheer; cheer1; cheer2; cheer4; cheer5; cheer6|];
+    let SoundSetting = PersistentSetting("Sound", On)
 open Sounds
 
 type MathBox() as this =
     inherit React.Component<unit, MathBoxViewState>()
     let mutable lastCheer = -1;
     let onCorrect() =
-        match this.state.sound with
+        match Sounds.SoundSetting.Value with
         | On | CheerOnly ->
             let n = ((JS.Math.random() * 1000.) |> int) % (cheers.Length)
             // don't want to repeat cheers because that feels funny
@@ -116,7 +118,7 @@ type MathBox() as this =
             (cheers.[n])()
         | _ -> ()
     let onIncorrect() =
-        match this.state.sound with
+        match Sounds.SoundSetting.Value with
         | On | BombOnly ->
             bomb()
         | _ -> ()
@@ -125,7 +127,7 @@ type MathBox() as this =
         this.setState({ this.state with showHints = not this.state.showHints })
     let toggleOptions() =
         this.setState({ this.state with showOptions = not this.state.showOptions })
-    do this.state <- { showOptions = false; showHints = false; sound = On }
+    do this.state <- { showOptions = false; showHints = false; }
     // onKeyDown is written dynamically because I haven't figured out the right JS types to do it statically
     let onKeyDown (ev : obj) =
         let key : string = unbox ev?key // unbox to type-cast
@@ -186,8 +188,8 @@ type MathBox() as this =
                 R.div [ClassName "optionsDisplay"] [
                     R.com<Selector<_>, _, _> {
                             label = "Sound"
-                            get = (fun() -> this.state.sound)
-                            set = (fun v -> this.setState { this.state with sound = v })
+                            get = (fun() -> Sounds.SoundSetting.Value)
+                            set = (fun v -> Sounds.SoundSetting.Value <- v; this.forceUpdate())
                             mapping = [On, "On"; Off, "Off"; BombOnly, "Bomb"; CheerOnly, "Cheers"; ]
                         } []
                     R.com<Selector<_>, _, _> {
