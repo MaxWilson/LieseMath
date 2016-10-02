@@ -66,6 +66,7 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
         with get() = size
         and set(v) =
             size <- v
+    member this.MathType = mathType
     member this.Score = score
     member this.CurrentProblem =
         let j, k, _ = problem

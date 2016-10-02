@@ -55,6 +55,11 @@ type Selector<'a  when 'a: equality>(props: SelectorProps<'a>) =
 type IntegerInput(props: IntegerInputProps) =
     inherit React.Component<IntegerInputProps, unit>()
     member this.render() =
+        // this is kind of hackish, but we're adjusting min/max on display
+        if props.get() < props.min then
+            props.set props.min
+        elif props.get() > props.max then
+            props.set props.max
         R.div [] [
             R.text [ClassName "optionLabel"] [unbox props.label]
             R.span [ClassName "optionSpan"]
@@ -124,35 +129,40 @@ type MathBox() as this =
     // onKeyDown is written dynamically because I haven't figured out the right JS types to do it statically
     let onKeyDown (ev : obj) =
         let key : string = unbox ev?key // unbox to type-cast
-        let x = JS.Number.parseInt key
-        if not (JS.Number.isNaN x) then
-            prob.KeyPress(int x)
-            this.forceUpdate()
+        if this.state.showOptions then
+            match key.ToLower() with
+            | "o" -> toggleOptions()
+            | _ -> ()
         else
-        match key.ToLower() with
-        | "a" -> prob.KeyPress(10); this.forceUpdate()
-        | "b" -> prob.KeyPress(11); this.forceUpdate()
-        | "c" -> prob.KeyPress(12); this.forceUpdate()
-        | "d" -> prob.KeyPress(13); this.forceUpdate()
-        | "e" -> prob.KeyPress(14); this.forceUpdate()
-        | "f" -> prob.KeyPress(15); this.forceUpdate()
-        | "enter" ->
-            prob.Advance()
-            this.forceUpdate()
-            ev?preventDefault() |> ignore
-        | "backspace" ->
-            prob.Backspace()
-            this.forceUpdate()
-            ev?preventDefault() |> ignore
-        | "h" ->
-            toggleHints()
-        | "o" -> toggleOptions()
-        | "r" ->
-            if (unbox ev?ctrlKey) then
-                prob.Reset()
+            let x = JS.Number.parseInt key
+            if not (JS.Number.isNaN x) then
+                prob.KeyPress(int x)
+                this.forceUpdate()
+            else
+            match key.ToLower() with
+            | "a" -> prob.KeyPress(10); this.forceUpdate()
+            | "b" -> prob.KeyPress(11); this.forceUpdate()
+            | "c" -> prob.KeyPress(12); this.forceUpdate()
+            | "d" -> prob.KeyPress(13); this.forceUpdate()
+            | "e" -> prob.KeyPress(14); this.forceUpdate()
+            | "f" -> prob.KeyPress(15); this.forceUpdate()
+            | "enter" ->
+                prob.Advance()
                 this.forceUpdate()
                 ev?preventDefault() |> ignore
-        | _ -> ()
+            | "backspace" ->
+                prob.Backspace()
+                this.forceUpdate()
+                ev?preventDefault() |> ignore
+            | "h" ->
+                toggleHints()
+            | "o" -> toggleOptions()
+            | "r" ->
+                if (unbox ev?ctrlKey) then
+                    prob.Reset()
+                    this.forceUpdate()
+                    ev?preventDefault() |> ignore
+            | _ -> ()
     member this.componentDidMount() =
         External.configureOnKeydown onKeyDown
     member this.render () =
@@ -175,16 +185,23 @@ type MathBox() as this =
                     ]
                 R.div [ClassName "optionsDisplay"] [
                     R.com<Selector<_>, _, _> {
-                            label = "Base"
-                            get = (fun() -> prob.MathBase)
-                            set = (fun v -> prob.MathBase <- v)
-                            mapping = [Enums.Binary, "Binary"; Enums.Decimal, "Decimal"; Enums.Hex, "Hexadecimal"]
-                        } []
-                    R.com<Selector<_>, _, _> {
                             label = "Sound"
                             get = (fun() -> this.state.sound)
                             set = (fun v -> this.setState { this.state with sound = v })
                             mapping = [On, "On"; Off, "Off"; BombOnly, "Bomb"; CheerOnly, "Cheers"; ]
+                        } []
+                    R.com<Selector<_>, _, _> {
+                            label = "Base"
+                            get = (fun() -> prob.MathBase)
+                            set = (fun v -> prob.MathBase <- v; prob.Reset(); this.forceUpdate())
+                            mapping = [Enums.Binary, "Binary"; Enums.Decimal, "Decimal"; Enums.Hex, "Hexadecimal"]
+                        } []
+                    R.com<IntegerInput, _, _> {
+                            label = "MaxNum"
+                            min = 1
+                            max = 2 * match prob.MathBase with | Enums.Hex -> 16 | Enums.Decimal -> 10 | Enums.Binary -> 2
+                            get = (fun() -> prob.MaxNum)
+                            set = (fun v -> prob.MaxNum <- v; prob.Reset(); this.forceUpdate())
                         } []
                     R.button [ClassName "optionDoneButton"; OnClick (fun _ -> toggleOptions())][unbox "OK"]
                     ]
