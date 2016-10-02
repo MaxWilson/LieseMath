@@ -1,16 +1,15 @@
 {
   "module": "commonjs",
   "sourceMaps": true,
-  "projFile": "./BadarniMath.fsproj",
+  "projFile": "BadarniMath.fsproj",
   "outDir": "temp",
   "scripts": {
-    "postbuild": "webpack --config webpack.dev.config.js"
   },
   "targets": {
-    "watch": {
+    "prod": {
       "scripts": {
-        "postbuild": "webpack-dev-server --colors --hot --config webpack.dev.config --content-base public/"
-      }
+      },
+      "production": true
     }
   }
 }
