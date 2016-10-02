@@ -6,7 +6,8 @@
   "scripts": {
     "test": "test",
     "build": "fable --target prod",
-    "watch": "start webpack-dev-server --colors --hot --config webpack.dev.config --content-base public/ && fable -w"
+    "watch": "fable -w",
+    "server": "webpack-dev-server --colors --hot --config webpack.dev.config --content-base public/"
   },
   "keywords": [
     "5e",
