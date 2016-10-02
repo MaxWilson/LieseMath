@@ -18,12 +18,12 @@ module External =
 
 type MathBoxState = { showHints: bool }
 type HintState = unit
-type HintProps = { cells: (int * AnswerState ref) list list }
+type HintProps = { cells: (string * AnswerState ref) list list }
 
 type HintTable(props: HintProps) =
     inherit React.Component<HintProps, HintState>()
     member x.render() =
-        let makeCell (cell: int * AnswerState ref) =
+        let makeCell (cell: string * AnswerState ref) =
             let needsReview = !(snd cell)
             R.td [ClassName (needsReview |> function | NeedsReview -> "hintcell needsreview" | Good -> "hintcell correct" | NoAnswer -> "hintcell")] [unbox (fst cell)]
 
@@ -54,7 +54,7 @@ type MathBox() as this =
         let n = if lastCheer = n then (n + 1) % cheers.Length else n
         lastCheer <- n
         (cheers.[n])()
-    let prob = MathProblems(12, randomCheer, bomb)
+    let prob = MathProblems(randomCheer, bomb)
     let updateState() = this.setState this.state
     do this.state <- { showHints = false }
     // written dynamically because I haven't figured out the right JS types
@@ -66,20 +66,30 @@ type MathBox() as this =
         if not (JS.Number.isNaN x) then
             prob.KeyPress(int x)
             updateState()
-        else if key = "Enter" then
+        else
+        match key.ToLower() with
+        | "a" -> prob.KeyPress(10); updateState()
+        | "b" -> prob.KeyPress(11); updateState()
+        | "c" -> prob.KeyPress(12); updateState()
+        | "d" -> prob.KeyPress(13); updateState()
+        | "e" -> prob.KeyPress(14); updateState()
+        | "f" -> prob.KeyPress(15); updateState()
+        | "enter" ->
             prob.Advance()
             updateState()
             ev?preventDefault() |> ignore
-        else if key = "Backspace" then
+        | "backspace" ->
             prob.Backspace()
             updateState()
             ev?preventDefault() |> ignore
-        else if key = "h" || key = "H" then
+        | "h" ->
             toggleHints()
-        else if ((key = "R" || key = "r") && (unbox ev?ctrlKey)) then
-            prob.Reset()
-            updateState()
-            ev?preventDefault() |> ignore
+        | "r" ->
+            if (unbox ev?ctrlKey) then
+                prob.Reset()
+                updateState()
+                ev?preventDefault() |> ignore
+        | _ -> ()
     member this.componentDidMount() =
         External.configureOnKeydown onKeyDown
     member this.render () =
@@ -91,8 +101,7 @@ type MathBox() as this =
             R.button [
                     onClickDo onClick
                     ClassName "numkey"
-                ] [unbox label]
-        let numKey (n: int) = keyPadButton (n.ToString()) (fun() -> prob.KeyPress n)
+            ] [unbox label]
         // there's a shell which holds both the hint box and the interaction keypad
         R.div [
             ClassName "shell columnDisplay"
@@ -105,24 +114,18 @@ type MathBox() as this =
                 R.div [ClassName "keypad"] [
                     // Use ReactHelper.com to build a React Component from a type
                     R.h2 [ClassName "numDisplay"] [unbox prob.CurrentProblem]
-                    R.div [ClassName "keyList"] [
-                        numKey 1
-                        numKey 2
-                        numKey 3
-                        numKey 4
-                        numKey 5
-                        numKey 6
-                        numKey 7
-                        numKey 8
-                        numKey 9
-                        keyPadButton "Backspace" prob.Backspace
-                        numKey 0
-                        keyPadButton "ENTER" prob.Advance
-                        R.button [
-                            ClassName "numkey"
-                            OnClick (fun _ -> toggleHints())
-                        ] [unbox (if this.state.showHints then "Hide hints" else "Show hints")]
-                    ]
+                    R.div [ClassName "keyList"] (
+                        prob.Keys |> List.map (function
+                        | Enums.Number(n, label) -> keyPadButton label (fun () -> prob.KeyPress n)
+                        | Enums.Backspace -> keyPadButton "Backspace" prob.Backspace
+                        | Enums.Enter -> keyPadButton "ENTER" prob.Advance
+                        | Enums.HintKey ->
+                            R.button [
+                                ClassName "numkey"
+                                OnClick (fun _ -> toggleHints())
+                            ] [unbox (if this.state.showHints then "Hide hints" else "Show hints")]
+                        )
+                    )
                 ]
                 (if this.state.showHints then
                     R.div [ClassName "hintDisplay"] [
