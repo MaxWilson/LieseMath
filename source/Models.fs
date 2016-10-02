@@ -45,6 +45,8 @@ let ComputeAnswer mathType mathBase lhs rhs =
     let ans = (match mathType with | Plus -> (+) | Minus -> (-) | Times -> (*) | Divide -> (/)) lhs rhs
     FormatByBase mathBase ans
 
+let FormatProblem mathType mathBase lhs rhs =
+    sprintf "%s x %s" (FormatByBase mathBase lhs) (FormatByBase mathBase rhs)
 type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
     let mutable size = 12;
     let mutable mathBase = Enums.Decimal;
@@ -70,7 +72,7 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
     member this.Score = score
     member this.CurrentProblem =
         let j, k, _ = problem
-        sprintf "%s x %s = %s" (FormatByBase mathBase j) (FormatByBase mathBase k) (if currentAnswer.Length > 0 then currentAnswer else "??")
+        sprintf "%s = %s" (FormatProblem mathType mathBase j k) (if currentAnswer.Length > 0 then currentAnswer else "??")
     member this.Advance() =
         if currentAnswer.Length > 0 then
             let x, y, ans = problem

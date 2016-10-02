@@ -237,7 +237,7 @@ type MathBox() as this =
                             // show review list, if any
                             (if prob.ReviewList.Length > 0 then
                                 R.ul [ClassName "reviewList"] (
-                                    prob.ReviewList |> List.map (fun(x, y, ans, given) -> R.li [] [unbox (sprintf "%d x %d = %s (you guessed %s)" x y ans given)])
+                                    prob.ReviewList |> List.map (fun(x, y, ans, given) -> R.li [] [unbox (sprintf "%s = %s (you guessed %s)" (FormatProblem prob.MathType prob.MathBase x y) ans given)])
                                 )
                                 else nothing)
                         ]
