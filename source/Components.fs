@@ -17,7 +17,7 @@ module External =
     let configureOnKeydown ev = failwith "JS only"
 
 type SoundState = On | Off | CheerOnly | BombOnly
-type MathBoxViewState = { showOptions: bool; showHints: bool; sound: SoundState }
+type MathBoxViewState = { showHints: bool; sound: SoundState; showOptions: bool;  }
 type HintState = unit
 type HintProps = { cells: (string * AnswerState ref) list list }
 
@@ -116,56 +116,57 @@ type MathBox() as this =
                         updateState())
         let keyPadButton label onClick =
             R.button [
-                    onClickDo onClick
-                    ClassName "numkey"
-            ] [unbox label]
+                onClickDo onClick
+                ClassName "numkey"
+                ] [unbox label]
         // there's a shell which holds both the hint box and the interaction keypad
         R.div [
             ClassName "shell columnDisplay"
-        ] (
-        if this.state.showOptions then
-            [
+            ] (
+            if this.state.showOptions then [
+                R.div [ClassName "settingsBar"] [
+                    R.button [ClassName "optionsButton"; OnClick (fun _ -> toggleOptions())] [unbox "Options"]
+                    ]
                 R.div [ClassName "optionsDisplay"] [
                     R.input [Placeholder "12"; ClassName "optionInput"][]
-                    R.button [ClassName "optionDoneButton"; onClickDo toggleOptions][unbox "OK"]
-                ]
-            ]
-        else
-            [
-            R.div [ClassName "settingsBar"] [
-                R.button [ClassName "resetButton"; onClickDo prob.Reset] [unbox "Reset"]
-                R.button [ClassName "optionsButton"; onClickDo toggleOptions] [unbox "Options"]
-            ]
-            R.h3 [ClassName "scoreDisplay"] [unbox ("Score: " + prob.Score.ToString())]
-            R.div [ClassName "shell rowDisplay"] [
-                R.div [ClassName "keypad"] [
-                    // Use ReactHelper.com to build a React Component from a type
-                    R.h2 [ClassName "numDisplay"] [unbox prob.CurrentProblem]
-                    R.div [ClassName "keyList"] (
-                        prob.Keys |> List.map (function
-                        | Enums.Number(n, label) -> keyPadButton label (fun () -> prob.KeyPress n)
-                        | Enums.Backspace -> keyPadButton "Backspace" prob.Backspace
-                        | Enums.Enter -> keyPadButton "ENTER" prob.Advance
-                        | Enums.HintKey ->
-                            R.button [
-                                ClassName "numkey"
-                                OnClick (fun _ -> toggleHints())
-                            ] [unbox (if this.state.showHints then "Hide hints" else "Show hints")]
-                        )
-                    )
-                ]
-                (if this.state.showHints then
-                    R.div [ClassName "hintDisplay"] [
-                        R.com<HintTable, HintProps, HintState> {
-                            cells = prob.HintCells
-                        } []
-                        // show review list, if any
-                        (if prob.ReviewList.Length > 0 then
-                            R.ul [ClassName "reviewList"] (
-                                prob.ReviewList |> List.map (fun(x, y, ans, given) -> R.li [] [unbox (sprintf "%d x %d = %s (you guessed %s)" x y ans given)])
-                            )
-                            else nothing)
+                    R.button [ClassName "optionDoneButton"; OnClick (fun _ -> toggleOptions())][unbox "OK"]
                     ]
-                    else nothing)
-            ]
-        ])
+                ]
+            else [
+                R.div [ClassName "settingsBar"] [
+                    R.button [ClassName "resetButton"; onClickDo prob.Reset] [unbox "Reset"]
+                    R.button [ClassName "optionsButton"; OnClick (fun _ -> toggleOptions())] [unbox "Options"]
+                    ]
+                R.h3 [ClassName "scoreDisplay"] [unbox ("Score: " + prob.Score.ToString())]
+                R.div [ClassName "shell rowDisplay"] [
+                    R.div [ClassName "keypad"] [
+                        // Use ReactHelper.com to build a React Component from a type
+                        R.h2 [ClassName "numDisplay"] [unbox prob.CurrentProblem]
+                        R.div [ClassName "keyList"] (
+                            prob.Keys |> List.map (function
+                            | Enums.Number(n, label) -> keyPadButton label (fun () -> prob.KeyPress n)
+                            | Enums.Backspace -> keyPadButton "Backspace" prob.Backspace
+                            | Enums.Enter -> keyPadButton "ENTER" prob.Advance
+                            | Enums.HintKey ->
+                                R.button [
+                                    ClassName "numkey"
+                                    OnClick (fun _ -> toggleHints())
+                                ] [unbox (if this.state.showHints then "Hide hints" else "Show hints")]
+                            )
+                        )
+                    ]
+                    (if this.state.showHints then
+                        R.div [ClassName "hintDisplay"] [
+                            R.com<HintTable, HintProps, HintState> {
+                                cells = prob.HintCells
+                            } []
+                            // show review list, if any
+                            (if prob.ReviewList.Length > 0 then
+                                R.ul [ClassName "reviewList"] (
+                                    prob.ReviewList |> List.map (fun(x, y, ans, given) -> R.li [] [unbox (sprintf "%d x %d = %s (you guessed %s)" x y ans given)])
+                                )
+                                else nothing)
+                        ]
+                        else nothing)
+                    ]
+                ])
