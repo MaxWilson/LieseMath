@@ -62,7 +62,10 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
         with get() = mathBase
         and set(v) =
             mathBase <- v
-            this.Reset()
+    member this.MaxNum
+        with get() = size
+        and set(v) =
+            size <- v
     member this.Score = score
     member this.CurrentProblem =
         let j, k, _ = problem

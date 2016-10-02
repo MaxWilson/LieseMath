@@ -22,6 +22,7 @@ type MathBoxViewState = { showHints: bool; sound: SoundState; showOptions: bool;
 type HintState = unit
 type HintProps = { cells: (string * AnswerState ref) list list }
 type SelectorProps<'a> = { label: string; get: unit -> 'a; set: 'a -> unit; mapping: ('a * string) list }
+type IntegerInputProps = { label: string; min: int; max: int; get: unit -> int; set: int -> unit }
 
 type HintTable(props: HintProps) =
     inherit React.Component<HintProps, HintState>()
@@ -50,6 +51,32 @@ type Selector<'a  when 'a: equality>(props: SelectorProps<'a>) =
                                         [unbox label]) |> List.ofSeq)
                     )
                 ]
+
+type IntegerInput(props: IntegerInputProps) =
+    inherit React.Component<IntegerInputProps, unit>()
+    member this.render() =
+        R.div [] [
+            R.text [ClassName "optionLabel"] [unbox props.label]
+            R.span [ClassName "optionSpan"]
+                [R.input [
+                    ClassName "option"
+                    OnChange (fun e ->
+                                  let v : string = (e.target?value) |> unbox
+                                  match JS.Number.parseInt v with
+                                  | x when JS.isNaN x -> ()
+                                  | n ->
+                                    let n = int n
+                                    if n < props.min then
+                                        props.set props.min
+                                    elif n > props.max then
+                                        props.set props.max
+                                    else
+                                        props.set (int n)
+                                    e.preventDefault()
+                                  )
+                    DefaultValue (U2.Case1 (props.get().ToString()))
+                    ] []]
+            ]
 
 let nothing = Unchecked.defaultof<ReactElement<obj>>
 
@@ -89,11 +116,11 @@ type MathBox() as this =
             bomb()
         | _ -> ()
     let prob = MathProblems(onCorrect, onIncorrect)
-    do this.state <- { showOptions = false; showHints = false; sound = On }
     let toggleHints() =
         this.setState({ this.state with showHints = not this.state.showHints })
     let toggleOptions() =
         this.setState({ this.state with showOptions = not this.state.showOptions })
+    do this.state <- { showOptions = false; showHints = false; sound = On }
     // onKeyDown is written dynamically because I haven't figured out the right JS types to do it statically
     let onKeyDown (ev : obj) =
         let key : string = unbox ev?key // unbox to type-cast
