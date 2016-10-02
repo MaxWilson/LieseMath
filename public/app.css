@@ -126,3 +126,23 @@ body { height: 95% }
   flex: 0 1 auto;
   font-size: 200%;
 }
+
+.optionSpan {
+    display: inline-flex;
+}
+
+.optionLabel {
+  font-size: 200%;
+}
+
+.option {
+  border: 1px solid black;
+  margin: 5px;
+  font-size: 200%;
+  background-color: white;
+  flex: 1 1 25%;
+}
+
+.option.selected {
+  background-color: greenyellow;
+}

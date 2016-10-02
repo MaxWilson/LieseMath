@@ -58,6 +58,11 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
     let mutable currentAnswer = "";
     let mutable reviewList = []
     let mutable cells = [1..size] |> List.map (fun x -> [1..size] |> List.map (fun y -> ComputeAnswer mathType mathBase x y, ref NoAnswer))
+    member this.MathBase
+        with get() = mathBase
+        and set(v) =
+            mathBase <- v
+            this.Reset()
     member this.Score = score
     member this.CurrentProblem =
         let j, k, _ = problem

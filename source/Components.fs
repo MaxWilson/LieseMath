@@ -5,6 +5,7 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Models
+open System.Collections.Generic
 
 // ReactHelper defines a DSL to make it easier to build
 // React components from F#
@@ -20,6 +21,7 @@ type SoundState = On | Off | CheerOnly | BombOnly
 type MathBoxViewState = { showHints: bool; sound: SoundState; showOptions: bool;  }
 type HintState = unit
 type HintProps = { cells: (string * AnswerState ref) list list }
+type SelectorProps<'a> = { label: string; get: unit -> 'a; set: 'a -> unit; mapping: ('a * string) list }
 
 type HintTable(props: HintProps) =
     inherit React.Component<HintProps, HintState>()
@@ -30,6 +32,22 @@ type HintTable(props: HintProps) =
 
         let rows = props.cells |> List.map (fun rowvals -> R.tr [] (rowvals |> List.map makeCell))
         R.table [ClassName "hinttable"] [R.tbody [] rows]
+
+type Selector<'a  when 'a: equality>(props: SelectorProps<'a>) =
+    inherit React.Component<SelectorProps<'a>, unit>()
+    member this.render() =
+        let selected = props.get()
+        R.span [ClassName "optionSpan"] (
+            (R.label [ClassName "optionLabel"] [unbox props.label])
+                :: (props.mapping
+                |> Seq.map (fun (value, label) ->
+                                R.button
+                                    [
+                                        OnClick (fun _ -> props.set value; this.forceUpdate())
+                                        ClassName (if value = selected then "option selected" else "option")
+                                        ]
+                                    [unbox label]) |> List.ofSeq)
+            )
 
 let nothing = Unchecked.defaultof<ReactElement<obj>>
 
@@ -127,7 +145,18 @@ type MathBox() as this =
                     R.button [ClassName "optionsButton"; OnClick (fun _ -> toggleOptions())] [unbox "Options"]
                     ]
                 R.div [ClassName "optionsDisplay"] [
-                    R.input [Placeholder "12"; ClassName "optionInput"][]
+                    R.com<Selector<_>, _, _> {
+                            label = "Base"
+                            get = (fun() -> prob.MathBase)
+                            set = (fun v -> prob.MathBase <- v)
+                            mapping = [Enums.Binary, "Binary"; Enums.Decimal, "Decimal"; Enums.Hex, "Hexadecimal"]
+                        } []
+                    R.com<Selector<_>, _, _> {
+                            label = "Sound"
+                            get = (fun() -> this.state.sound)
+                            set = (fun v -> this.setState { this.state with sound = v })
+                            mapping = [On, "On"; Off, "Off"; BombOnly, "Bomb"; CheerOnly, "Cheers"; ]
+                        } []
                     R.button [ClassName "optionDoneButton"; OnClick (fun _ -> toggleOptions())][unbox "OK"]
                     ]
                 ]
