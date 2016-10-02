@@ -45,7 +45,7 @@ let ComputeAnswer mathType mathBase lhs rhs =
     let ans = (match mathType with | Plus -> (+) | Minus -> (-) | Times -> (*) | Divide -> (/)) lhs rhs
     FormatByBase mathBase ans
 
-type MathProblems(cheer: _ -> _, onIncorrect: _ -> _) =
+type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
     let mutable size = 12;
     let mutable mathBase = Enums.Decimal;
     let mutable mathType = Enums.Times
@@ -69,8 +69,7 @@ type MathProblems(cheer: _ -> _, onIncorrect: _ -> _) =
             if ans = currentAnswer then
                 score <- score + 100
                 answerCell := Good
-                if this.EnableCheer then
-                    cheer()
+                onCorrect()
             else
                 score <- score - 100
                 answerCell := NeedsReview
@@ -96,4 +95,3 @@ type MathProblems(cheer: _ -> _, onIncorrect: _ -> _) =
         cells <- [1..size] |> List.map (fun x -> [1..size] |> List.map (fun y -> ComputeAnswer mathType mathBase x y, ref NoAnswer))
         problem <- nextProblem()
     member this.Keys = match mathBase with | Decimal -> DecimalKeys | Hex -> HexKeys | Binary -> BinaryKeys
-    member val EnableCheer = true with get, set

@@ -16,7 +16,8 @@ module External =
     [<Emit("document.body.addEventListener('keydown', $0, true)")>]
     let configureOnKeydown ev = failwith "JS only"
 
-type MathBoxViewState = { showOptions: bool; showHints: bool; }
+type SoundState = On | Off | CheerOnly | BombOnly
+type MathBoxViewState = { showOptions: bool; showHints: bool; sound: SoundState }
 type HintState = unit
 type HintProps = { cells: (string * AnswerState ref) list list }
 
@@ -32,8 +33,7 @@ type HintTable(props: HintProps) =
 
 let nothing = Unchecked.defaultof<ReactElement<obj>>
 
-type MathBox() as this =
-    inherit React.Component<unit, MathBoxViewState>()
+module Sounds =
     [<Emit("let cheer = new Audio('1_person_cheering-Jett_Rifkin-1851518140.mp3'); cheer.play()")>]
     let cheer() = failwith "JS only";
     [<Emit("let cheer1 = new Audio('Cheer1.m4a'); cheer1.currentTime = 0.3; cheer1.play()")>]
@@ -49,16 +49,28 @@ type MathBox() as this =
     [<Emit("let bomb = new Audio('Grenade Explosion-SoundBible.com-2100581469.mp3'); bomb.play()")>]
     let bomb() = failwith "JS only";
     let cheers = [|cheer; cheer1; cheer2; cheer4; cheer5; cheer6|];
+open Sounds
+
+type MathBox() as this =
+    inherit React.Component<unit, MathBoxViewState>()
     let mutable lastCheer = -1;
-    let randomCheer() =
-        let n = ((JS.Math.random() * 1000.) |> int) % (cheers.Length)
-        // don't want to repeat cheers because that feels funny
-        let n = if lastCheer = n then (n + 1) % cheers.Length else n
-        lastCheer <- n
-        (cheers.[n])()
-    let prob = MathProblems(randomCheer, bomb)
+    let onCorrect() =
+        match this.state.sound with
+        | On | CheerOnly ->
+            let n = ((JS.Math.random() * 1000.) |> int) % (cheers.Length)
+            // don't want to repeat cheers because that feels funny
+            let n = if lastCheer = n then (n + 1) % cheers.Length else n
+            lastCheer <- n
+            (cheers.[n])()
+        | _ -> ()
+    let onIncorrect() =
+        match this.state.sound with
+        | On | BombOnly ->
+            bomb()
+        | _ -> ()
+    let prob = MathProblems(onCorrect, onIncorrect)
     let updateState() = this.setState this.state
-    do this.state <- { showOptions = false; showHints = false }
+    do this.state <- { showOptions = false; showHints = false; sound = On }
     // written dynamically because I haven't figured out the right JS types
     let toggleHints() =
         this.setState({ this.state with showHints = not this.state.showHints })
