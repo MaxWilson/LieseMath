@@ -69,7 +69,6 @@ type MathBox() as this =
             bomb()
         | _ -> ()
     let prob = MathProblems(onCorrect, onIncorrect)
-    let updateState() = this.setState this.state
     do this.state <- { showOptions = false; showHints = false; sound = On }
     let toggleHints() =
         this.setState({ this.state with showHints = not this.state.showHints })
@@ -81,22 +80,22 @@ type MathBox() as this =
         let x = JS.Number.parseInt key
         if not (JS.Number.isNaN x) then
             prob.KeyPress(int x)
-            updateState()
+            this.forceUpdate()
         else
         match key.ToLower() with
-        | "a" -> prob.KeyPress(10); updateState()
-        | "b" -> prob.KeyPress(11); updateState()
-        | "c" -> prob.KeyPress(12); updateState()
-        | "d" -> prob.KeyPress(13); updateState()
-        | "e" -> prob.KeyPress(14); updateState()
-        | "f" -> prob.KeyPress(15); updateState()
+        | "a" -> prob.KeyPress(10); this.forceUpdate()
+        | "b" -> prob.KeyPress(11); this.forceUpdate()
+        | "c" -> prob.KeyPress(12); this.forceUpdate()
+        | "d" -> prob.KeyPress(13); this.forceUpdate()
+        | "e" -> prob.KeyPress(14); this.forceUpdate()
+        | "f" -> prob.KeyPress(15); this.forceUpdate()
         | "enter" ->
             prob.Advance()
-            updateState()
+            this.forceUpdate()
             ev?preventDefault() |> ignore
         | "backspace" ->
             prob.Backspace()
-            updateState()
+            this.forceUpdate()
             ev?preventDefault() |> ignore
         | "h" ->
             toggleHints()
@@ -104,7 +103,7 @@ type MathBox() as this =
         | "r" ->
             if (unbox ev?ctrlKey) then
                 prob.Reset()
-                updateState()
+                this.forceUpdate()
                 ev?preventDefault() |> ignore
         | _ -> ()
     member this.componentDidMount() =
@@ -113,7 +112,7 @@ type MathBox() as this =
         let onClickDo handler =
             OnClick (fun _ ->
                         handler()
-                        updateState())
+                        this.forceUpdate())
         let keyPadButton label onClick =
             R.button [
                 onClickDo onClick
