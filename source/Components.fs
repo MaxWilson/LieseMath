@@ -37,17 +37,19 @@ type Selector<'a  when 'a: equality>(props: SelectorProps<'a>) =
     inherit React.Component<SelectorProps<'a>, unit>()
     member this.render() =
         let selected = props.get()
-        R.span [ClassName "optionSpan"] (
-            (R.label [ClassName "optionLabel"] [unbox props.label])
-                :: (props.mapping
-                |> Seq.map (fun (value, label) ->
-                                R.button
-                                    [
-                                        OnClick (fun _ -> props.set value; this.forceUpdate())
-                                        ClassName (if value = selected then "option selected" else "option")
-                                        ]
-                                    [unbox label]) |> List.ofSeq)
-            )
+        R.div [] [
+            R.text [ClassName "optionLabel"] [unbox props.label]
+            R.span [ClassName "optionSpan"] (
+                (props.mapping
+                    |> Seq.map (fun (value, label) ->
+                                    R.button
+                                        [
+                                            OnClick (fun _ -> props.set value; this.forceUpdate())
+                                            ClassName (if value = selected then "option selected" else "option")
+                                            ]
+                                        [unbox label]) |> List.ofSeq)
+                    )
+                ]
 
 let nothing = Unchecked.defaultof<ReactElement<obj>>
 

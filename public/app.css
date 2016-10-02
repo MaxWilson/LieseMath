@@ -133,6 +133,7 @@ body { height: 95% }
 
 .optionLabel {
   font-size: 200%;
+  margin: 5px;
 }
 
 .option {
