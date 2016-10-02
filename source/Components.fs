@@ -71,11 +71,11 @@ type MathBox() as this =
     let prob = MathProblems(onCorrect, onIncorrect)
     let updateState() = this.setState this.state
     do this.state <- { showOptions = false; showHints = false; sound = On }
-    // written dynamically because I haven't figured out the right JS types
     let toggleHints() =
         this.setState({ this.state with showHints = not this.state.showHints })
     let toggleOptions() =
         this.setState({ this.state with showOptions = not this.state.showOptions })
+    // onKeyDown is written dynamically because I haven't figured out the right JS types to do it statically
     let onKeyDown (ev : obj) =
         let key : string = unbox ev?key // unbox to type-cast
         let x = JS.Number.parseInt key
