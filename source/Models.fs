@@ -68,14 +68,19 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
     let size = PersistentSetting("size", 12);
     let mathBase = PersistentSetting("mathBase", Enums.Decimal)
     let mathType = PersistentSetting("mathType", Enums.Times)
+    let mutable reviewList = []
     let nextProblem() =
-        let nextNumber() = (JS.Math.random() * (float size.Value) |> int) + 1
-        let j, k = nextNumber(), nextNumber()
-        (j, k, ComputeAnswer mathType.Value mathBase.Value j k)
+        // 30% of the time it will backtrack to one you got wrong before
+        if(JS.Math.random() < 0.30 && reviewList.Length > 0) then
+            let (j, k, correctAnswer, _) = reviewList.[(JS.Math.random() * 1000. |> int) % reviewList.Length]
+            (j, k, correctAnswer)
+        else
+            let nextNumber() = (JS.Math.random() * (float size.Value) |> int) + 1
+            let j, k = nextNumber(), nextNumber()
+            (j, k, ComputeAnswer mathType.Value mathBase.Value j k)
     let mutable problem = nextProblem()
     let mutable score = 0
     let mutable currentAnswer = "";
-    let mutable reviewList = []
     let mutable cells = [1..size.Value] |> List.map (fun x -> [1..size.Value] |> List.map (fun y -> ComputeAnswer mathType.Value mathBase.Value x y, ref NoAnswer))
     member this.MathBase
         with get() = mathBase.Value
@@ -97,6 +102,9 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
             if ans = currentAnswer then
                 score <- score + 100
                 answerCell := Good
+                if reviewList |> Seq.exists (fun (j, k, _, _) -> j = x && k = y) then
+                    // now that they've got it correct, eliminate it from the review list
+                    reviewList <- reviewList |> List.filter (fun (j, k, _, _) -> not (j = x && k = y))
                 onCorrect()
             else
                 score <- score - 100
