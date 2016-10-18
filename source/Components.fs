@@ -193,6 +193,12 @@ type MathBox() as this =
                             mapping = [On, "On"; Off, "Off"; BombOnly, "Bomb"; CheerOnly, "Cheers"; ]
                         } []
                     R.com<Selector<_>, _, _> {
+                            label = "Auto-ENTER"
+                            get = (fun() -> prob.AutoEnter)
+                            set = (fun v -> prob.AutoEnter <- v; this.forceUpdate())
+                            mapping = [true, "On"; false, "Off"]
+                        } []
+                    R.com<Selector<_>, _, _> {
                             label = "Base"
                             get = (fun() -> prob.MathBase)
                             set = (fun v -> prob.MathBase <- v; prob.Reset(); this.forceUpdate())

@@ -68,6 +68,7 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
     let size = PersistentSetting("size", 12);
     let mathBase = PersistentSetting("mathBase", Enums.Decimal)
     let mathType = PersistentSetting("mathType", Enums.Times)
+    let autoEnter = PersistentSetting("autoEnter", false)
     let mutable reviewList = []
     let nextProblem() =
         // 30% of the time it will backtrack to one you got wrong before
@@ -90,6 +91,9 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
         with get() = size.Value
         and set(v) =
             size.Value <- v
+    member this.AutoEnter
+        with get() = autoEnter.Value
+        and set(v) = autoEnter.Value <- v
     member this.MathType = mathType
     member this.Score = score
     member this.CurrentProblem =
@@ -121,6 +125,10 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
         // ignore keys that don't apply to this base
         if n < (match mathBase.Value with Decimal -> 10 | Hex -> 16 | Binary -> 2) then
             currentAnswer <- currentAnswer + (if n < 10 then n.ToString() else (65 + (n - 10)) |> char |> string)
+        if this.AutoEnter then
+            let _, _, ans = problem
+            if ans.Length = currentAnswer.Length then
+                this.Advance()
     member this.Backspace() =
         if(currentAnswer.Length > 0) then
             currentAnswer <- currentAnswer.Substring(0, currentAnswer.Length - 1)
