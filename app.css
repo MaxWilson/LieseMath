@@ -147,3 +147,25 @@ body { height: 95% }
 .option.selected {
   background-color: greenyellow;
 }
+
+@media(max-width:30em) {
+  body {
+    font-size:12px;
+  }
+  .hintcell {
+    width: 10px;
+    font-size: 8px;
+  }
+  .rowDisplay {
+    flex-direction: column;
+  }
+  .keypad {
+    min-height: min-content;
+  }
+  .keyList {
+    min-height: min-content;
+  }
+  .hintDisplay {
+    min-height: min-content;
+  }
+}
