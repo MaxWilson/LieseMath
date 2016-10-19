@@ -160,12 +160,18 @@ body { height: 95% }
     flex-direction: column;
   }
   .keypad {
+    min-height: -moz-min-content;
+    min-height: -webkit-min-content;
     min-height: min-content;
   }
   .keyList {
+    min-height: -moz-min-content;
+    min-height: -webkit-min-content;
     min-height: min-content;
   }
   .hintDisplay {
+    min-height: -moz-min-content;
+    min-height: -webkit-min-content;
     min-height: min-content;
   }
 }
