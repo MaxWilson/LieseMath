@@ -4,6 +4,7 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
+open Fable.Import.Browser
 open Models
 open System.Collections.Generic
 
@@ -12,10 +13,6 @@ open System.Collections.Generic
 module R = Fable.Helpers.React
 open R.Props
 open Fable.Import.React
-
-module External =
-    [<Emit("document.body.addEventListener('keydown', $0, true)")>]
-    let configureOnKeydown ev = failwith "JS only"
 
 type SoundState = On | Off | CheerOnly | BombOnly
 type MathBoxViewState = { showHints: bool; showOptions: bool;  }
@@ -87,21 +84,16 @@ type IntegerInput(props: IntegerInputProps) =
 let nothing = Unchecked.defaultof<ReactElement<obj>>
 
 module Sounds =
-    [<Emit("let cheer = new Audio('1_person_cheering-Jett_Rifkin-1851518140.mp3'); cheer.play()")>]
-    let cheer() = failwith "JS only";
-    [<Emit("let cheer1 = new Audio('Cheer1.m4a'); cheer1.currentTime = 0.3; cheer1.play()")>]
-    let cheer1() = failwith "JS only";
-    [<Emit("let cheer2 = new Audio('Cheer2.m4a'); cheer2.currentTime = 1; cheer2.play()")>]
-    let cheer2() = failwith "JS only";
-    [<Emit("let cheer4 = new Audio('Cheer4.m4a'); cheer4.currentTime = 0.5; cheer4.play()")>]
-    let cheer4() = failwith "JS only";
-    [<Emit("let cheer5 = new Audio('Cheer5.m4a'); cheer5.currentTime = 0.5; cheer5.play()")>]
-    let cheer5() = failwith "JS only";
-    [<Emit("let cheer6 = new Audio('Cheer6.m4a'); cheer6.play()")>]
-    let cheer6() = failwith "JS only";
-    [<Emit("let bomb = new Audio('Grenade Explosion-SoundBible.com-2100581469.mp3'); bomb.play()")>]
-    let bomb() = failwith "JS only";
-    let cheers = [|cheer; cheer1; cheer2; cheer4; cheer5; cheer6|];
+
+    let cheers = [
+        Audio.Create("1_person_cheering-Jett_Rifkin-1851518140.mp3")
+        Audio.Create("Cheer1.m4a")
+        Audio.Create("Cheer2.m4a")
+        Audio.Create("Cheer4.m4a")
+        Audio.Create("Cheer5.m4a")
+        Audio.Create("Cheer6.m4a")
+        ]
+    let bomb = Audio.Create("Grenade Explosion-SoundBible.com-2100581469.mp3")
     let SoundSetting = PersistentSetting("Sound", On)
 open Sounds
 
@@ -115,12 +107,12 @@ type MathBox() as this =
             // don't want to repeat cheers because that feels funny
             let n = if lastCheer = n then (n + 1) % cheers.Length else n
             lastCheer <- n
-            (cheers.[n])()
+            cheers.[n].play()
         | _ -> ()
     let onIncorrect() =
         match Sounds.SoundSetting.Value with
         | On | BombOnly ->
-            bomb()
+            bomb.play()
         | _ -> ()
     let prob = MathProblems(onCorrect, onIncorrect)
     let toggleHints() =
@@ -128,8 +120,8 @@ type MathBox() as this =
     let toggleOptions() =
         this.setState({ this.state with showOptions = not this.state.showOptions })
     do this.state <- { showOptions = false; showHints = false; }
-    // onKeyDown is written dynamically because I haven't figured out the right JS types to do it statically
-    let onKeyDown (ev : obj) =
+    // onKeyDown is written partly dynamically because I haven't figured out the right JS types to do it statically
+    let onKeyDown (ev : Event) =
         let key : string = unbox ev?key // unbox to type-cast
         if this.state.showOptions then
             match key.ToLower() with
@@ -151,11 +143,11 @@ type MathBox() as this =
             | "enter" ->
                 prob.Advance()
                 this.forceUpdate()
-                ev?preventDefault() |> ignore
+                ev.preventDefault()
             | "backspace" ->
                 prob.Backspace()
                 this.forceUpdate()
-                ev?preventDefault() |> ignore
+                ev.preventDefault()
             | "h" ->
                 toggleHints()
             | "o" -> toggleOptions()
@@ -163,10 +155,10 @@ type MathBox() as this =
                 if (unbox ev?ctrlKey) then
                     prob.Reset()
                     this.forceUpdate()
-                    ev?preventDefault() |> ignore
+                    ev.preventDefault()
             | _ -> ()
     member this.componentDidMount() =
-        External.configureOnKeydown onKeyDown
+        Browser.document.addEventListener("keydown", EventListenerOrEventListenerObject.Case1(EventListener onKeyDown), true)
     member this.render () =
         let onClickDo handler =
             OnClick (fun _ ->
