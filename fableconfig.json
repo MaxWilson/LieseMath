@@ -3,13 +3,17 @@
   "sourceMaps": true,
   "projFile": "BadarniMath.fsproj",
   "outDir": "temp",
-  "scripts": {
-  },
   "targets": {
     "prod": {
       "scripts": {
       },
       "production": true
+    },
+    "watch": {
+      "scripts": {
+        "postbuild-once": "node node_modules/webpack-dev-server/bin/webpack-dev-server.js --colors --hot --config webpack.dev.config --content-base public/"
+      },
+      "watch": true
     }
   }
 }
