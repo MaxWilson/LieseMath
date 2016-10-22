@@ -26,7 +26,7 @@ type HintTable(props: HintProps) =
     member x.render() =
         let makeCell (cell: string * AnswerState ref) =
             let needsReview = !(snd cell)
-            R.td [ClassName (needsReview |> function | NeedsReview -> "hintcell needsreview" | Good -> "hintcell correct" | NoAnswer -> "hintcell")] [unbox (fst cell)]
+            R.td [ClassName (needsReview |> function | NeedsReview -> "hintcell needsreview" | Good -> "hintcell correct" | NoAnswer -> "hintcell" | ChromeOnly -> "hintcell chromeOnly")] [unbox (fst cell)]
 
         let rows = props.cells |> List.map (fun rowvals -> R.tr [] (rowvals |> List.map makeCell))
         R.table [ClassName "hinttable"] [R.tbody [] rows]
@@ -191,10 +191,22 @@ type MathBox() as this =
                             mapping = [true, "On"; false, "Off"]
                         } []
                     R.com<Selector<_>, _, _> {
+                            label = "Progressive difficulty"
+                            get = (fun() -> prob.ProgressiveDifficulty)
+                            set = (fun v -> prob.ProgressiveDifficulty <- v; this.forceUpdate())
+                            mapping = [true, "On"; false, "Off"]
+                        } []
+                    R.com<Selector<_>, _, _> {
                             label = "Base"
                             get = (fun() -> prob.MathBase)
                             set = (fun v -> prob.MathBase <- v; prob.Reset(); this.forceUpdate())
                             mapping = [Enums.Binary, "Binary"; Enums.Decimal, "Decimal"; Enums.Hex, "Hexadecimal"]
+                        } []
+                    R.com<Selector<_>, _, _> {
+                            label = "Operation"
+                            get = (fun() -> prob.MathType)
+                            set = (fun v -> prob.MathType <- v; prob.Reset(); this.forceUpdate())
+                            mapping = Enums.mathTypeMappings
                         } []
                     R.com<IntegerInput, _, _> {
                             label = "MaxNum"
@@ -237,7 +249,7 @@ type MathBox() as this =
                             // show review list, if any
                             (if prob.ReviewList.Length > 0 then
                                 R.ul [ClassName "reviewList"] (
-                                    prob.ReviewList |> List.map (fun(x, y, ans, given) -> R.li [] [unbox (sprintf "%s = %s (you guessed %s)" (FormatProblem prob.MathType prob.MathBase x y) ans given)])
+                                    prob.ReviewList |> List.map (fun(x, y, prob, ans, given) -> R.li [] [unbox (sprintf "%s = %s (you guessed %s)" prob ans given)])
                                 )
                                 else nothing)
                         ]

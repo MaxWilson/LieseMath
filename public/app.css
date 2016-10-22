@@ -97,6 +97,10 @@ body { height: 95% }
   color: white;
 }
 
+.chromeOnly {
+  background-color: lightgrey;
+}
+
 .reviewList {
   list-style:none;
   overflow:auto;
