@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\sass\main.sass" Link="main.sass" />
+    <Compile Include="Common.fs" />
+    <Compile Include="Model.fs" />
+    <Compile Include="View.fs" />
+    <Compile Include="Update.fs" />
+    <Compile Include="LegacyComponent.fs" />
+    <Compile Include="App.fs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Include="Fable.Core" Version="3.1.2" />
+    <PackageReference Include="Fable.Elmish" Version="3.0.6" />
+    <PackageReference Include="Fable.Elmish.Browser" Version="3.0.2" />
+    <PackageReference Include="Fable.Elmish.Debugger" Version="3.0.3" />
+    <PackageReference Include="Fable.Elmish.HMR" Version="4.0.1" />
+    <PackageReference Include="Fable.Elmish.React" Version="3.0.1" />
+    <PackageReference Include="Fable.React" Version="5.3.4" />
+    <PackageReference Include="FSharp.Core" Version="4.7.0" />
+    <PackageReference Include="Thoth.Json" Version="3.3.0" />
+  </ItemGroup>
+  <Import Project="..\.paket\Paket.Restore.targets" />
+</Project>

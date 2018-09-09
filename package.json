@@ -1,38 +1,45 @@
 {
-  "name": "beast",
-  "version": "0.0.1",
-  "description": "Brain-dead simple simulator for 5E combat",
-  "main": "index.js",
+  "name": "BMath",
+  "version": "1.0.0",
+  "description": "Simple Fable App",
   "scripts": {
-    "test": "test",
-    "build": "fable --target prod",
-    "watch": "fable -w",
-    "server": "webpack-dev-server --colors --hot --config webpack.dev.config --content-base public/"
+    "build": "webpack -p",
+    "start": "webpack-dev-server",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "5e",
-    "Monte",
-    "Carlo",
-    "dnd",
-    "combat",
-    "crpg",
-    "rpg"
-  ],
-  "author": "Max Wilson",
+  "keywords": [],
+  "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "fable-compiler": "^0.6.9",
-    "source-map-loader": "^0.1.5",
-    "webpack": "^1.13.2",
-    "webpack-dev-server": "^1.15.1"
+  "peerDependencies": {
+    "react": "^16.7.0"
   },
   "dependencies": {
-    "core-js": "^2.4.1",
-    "fable-core": "^0.6.7",
-    "fable-import-express": "0.0.11",
-    "fable-import-react": "^0.5.2",
-    "marked": "^0.3.6",
-    "react": "^15.3.1",
-    "react-dom": "^15.3.1"
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "remotedev": "^0.2.7",
+    "core-js": "^2.6.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "@fortawesome/fontawesome-free": "^5.6.3",
+    "babel-loader": "^8.0.5",
+    "bulma": "^0.7.2",
+    "copy-webpack-plugin": "^4.6.0",
+    "css-loader": "^2.1.0",
+    "fable-compiler": "^2.1.10",
+    "fable-loader": "^2.1.2",
+    "fable-utils": "^1.0.6",
+    "file-loader": "^3.0.1",
+    "html-webpack-plugin": "^3.2.0",
+    "mini-css-extract-plugin": "^0.5.0",
+    "node-sass": "^4.12.0",
+    "npx": "^10.2.0",
+    "sass": "^1.16.1",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.29.0",
+    "webpack-cli": "^3.2.1",
+    "webpack-dev-server": "^3.1.14"
   }
 }

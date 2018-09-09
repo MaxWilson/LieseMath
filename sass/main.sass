@@ -1,0 +1,191 @@
+// Colors
+//@import '../node_modules/bulma/bulma'
+
+html
+ height: 100%
+body
+  height: 95%
+
+.ui
+  height: 100%
+  width: 100%
+  display: grid
+  grid-template-columns: 10% 80% 10%
+  grid-template-rows: auto
+  grid-template-areas: ". . h" ". score ." ". question ." ". keys ."
+
+  .scoreDisplay
+    grid-area: score
+    text-align: center
+    font-size: 200%
+
+  .numDisplay
+    grid-area: question
+    font-size: 200%
+    border: 2px solid black
+    padding: 5px
+    flex: 1 1 30%
+    justify-content: center
+    align-items: center
+    display: flex
+
+  .keyList
+    grid-area: keys
+    flex-direction: row
+    display: inline-flex
+    flex-wrap: wrap
+    flex: 1 1 60%
+    button
+      flex: 1 1 30%
+      font-size: 200%
+    margin: 30px
+
+  .optionsDisplay
+    grid-area: score
+
+.ui.withHints
+  grid-template-columns: 5% 40% 5% 50%
+  grid-template-areas: ". . h h" ". score . hints" ". question . hints" ". keys . hints"
+  .hintDisplay
+    margin: 10px
+    grid-area: hints
+    flex: 0 1 100%
+    border-left: 10px solid transparent
+    display: inline-flex
+    justify-content: space-around
+    align-items: center
+    flex-flow: column nowrap
+
+    .hintTable
+      font-size: 1.5em
+      .hintCell
+        border: 1px solid black
+        padding: 5px
+        font-size: 80%
+        text-align: center
+        width: 40px
+      .needsReview
+        background-color: red
+        color: white
+
+      .correct
+        background-color: green
+        color: white
+
+      .chromeOnly
+        background-color: lightgrey
+
+.shell
+  height: 100%
+  width: 100%
+  dispaly: inline-flex
+
+.rowDisplay
+  flex-direction: row
+
+
+.columnDisplay
+  flex-direction: column
+
+
+
+
+.header
+  grid-area: h
+  flex-direction: row
+  display: inline-flex
+
+.header
+  justify-content: flex-end
+  button
+    font-size: 200%
+  .resetButton
+    flex: 0 1 auto
+
+
+.keypad
+  display: inline-flex
+  flex-direction: column
+  flex: 1 1 100%
+
+.hide
+  display: none
+
+.reviewList
+  list-style: none
+  overflow: auto
+  color: red
+  font-weight: bold
+  font-size: 130%
+  width: 70%
+
+.optionsDisplay
+  display: flex
+  flex: 0 1 100%
+  justify-content: space-around
+  align-items: center
+  flex-flow: column nowrap
+  padding: 4px
+
+
+.optionInput
+  padding: 2px
+  font-size: 150%
+  margin: 10px
+  flex: 0 1 auto
+
+
+.optionDoneButton
+  flex: 0 1 auto
+  font-size: 200%
+  margin: 10px
+
+.optionSpan
+    display: inline-flex
+
+.optionLabel
+  font-size: 200%
+  margin: 5px
+
+.option
+  border: 1px solid black
+  margin: 5px
+  font-size: 200%
+  background-color: white
+  flex: 1 1 25%
+
+.optionButton
+  font-size: 200%
+  max-width: 2em
+  max-height: 2em
+
+.option.selected
+  background-color: greenyellow
+
+
+@media(max-width:30em)
+  body
+    font-size:12px
+
+  .hintcell
+    width: 10px
+    font-size: 8px
+
+  .rowDisplay
+    flex-direction: column
+
+  .keypad
+    min-height: -moz-min-content
+    min-height: -webkit-min-content
+    min-height: min-content
+
+  .keyList
+    min-height: -moz-min-content
+    min-height: -webkit-min-content
+    min-height: min-content
+
+  .hintDisplay
+    min-height: -moz-min-content
+    min-height: -webkit-min-content
+    min-height: min-content
+
