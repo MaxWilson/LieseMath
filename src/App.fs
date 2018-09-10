@@ -11,8 +11,6 @@ open Types
 open App.State
 open Global
 
-importAll "../sass/main.sass"
-
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
 
@@ -75,5 +73,5 @@ Program.mkProgram init update root
 |> Program.withDebugger
 |> Program.withHMR
 #endif
-|> Program.withReact "elmish-app"
+|> Program.withReact "main"
 |> Program.run
