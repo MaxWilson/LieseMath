@@ -34,7 +34,7 @@ let menu currentPage =
           menuItem "Counter sample" Counter currentPage
           menuItem "About" Page.About currentPage ] ]
 
-let root model dispatch =
+let root1 model dispatch =
 
   let pageHtml =
     function
@@ -61,6 +61,22 @@ let root model dispatch =
                   div
                     [ ClassName "column" ]
                     [ pageHtml model.currentPage ] ] ] ] ]
+
+let root model dispatch =
+  div [
+    ClassName "app"
+    ] [
+      div[ClassName "header"][
+        div[] [str "Score: 0"]
+        button [ClassName "showOptions"][str "Options"]
+      ]
+      div[ClassName "display"][str "Display"]
+      div[ClassName "keypad"] [
+        for x in 1..10 do
+          yield div[][str <| x.ToString()]
+      ]
+      div[ClassName "hints"][str "Hints"]
+    ]
 
 open Elmish.React
 open Elmish.Debug

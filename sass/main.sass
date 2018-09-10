@@ -1,22 +1,50 @@
 // Colors
-$purple: #7a325d
-$primary: $purple
-$black: #202020
-
 @import '../node_modules/bulma/bulma'
 
-.navbar-bg
-  background-color: $black
-  .nav
-    background-color: $black
-  .title
-    color: #686868
-    font-weight: 600
+.app
+  display: grid
+  grid: "h h h" "d d d" "i i i" "hn hn hn"
 
-.twitter
-  color: #55acee !important // Override bulma
-  border-color: #55acee
+.header
+  grid-area: h
+  display: flex
 
-.github
-  color: $black !important // Override bulma
-  border-color: $black
+.display
+  grid-area: d
+  border: 2px solid black
+  padding: 5px
+  justify-content: center
+  align-content: center
+
+.showOptions
+  margin-left: auto
+
+.keypad
+  @extend .colorized  
+  @extend .gap
+  display: grid
+  grid-area: i
+  grid-template-columns: repeat(3, minmax(100px, 1fr))
+  grid-auto-rows: 100px
+
+.hints
+  grid-area: hn
+
+.gap
+  grid-gap: 3px
+
+.colorized
+ > div:nth-child(1n)
+  background-color: #96ceb4;	
+
+.colorized
+ > div:nth-child(3n) 
+  background-color: #88d8b0;
+
+.colorized
+ > div:nth-child(2n) 
+  background-color: #ff6f69;
+
+.colorized
+ > div:nth-child(4n) 
+  background-color: #ffcc5c;
