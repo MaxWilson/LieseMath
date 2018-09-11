@@ -12,14 +12,17 @@
 
 .score
   flex: 1
-  font-size: 200%
+  font-size: 2em
   text-align: center
   grid-area: h
 
 .display
+  display: flex
   text-align: center
+  align-items: center
+  align-self: stretch
   grid-area: d
-  font-size: 200%
+  font-size: 2em
   font-weight: bold
   border: 2px solid black
   padding: 5px
@@ -35,7 +38,10 @@
   grid-auto-rows: 100px
 
 .keypad > button
-  font-size: 200%
+  font-size: 2em
+
+.hintButton
+  grid-column: 1/-1
 
 .hints
   grid-area: hn

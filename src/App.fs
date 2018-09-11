@@ -71,14 +71,14 @@ let root model dispatch =
         button [][str "Reset"]
         button [][str "Options"]
       ]
-      h2[ClassName "display"][str "3 x 5 = ??"]
+      div[ClassName "display"][str "3 x 5 = ??"]
       div[ClassName "keypad"] [
         for x in 1..9 do
           yield button[][str <| x.ToString()]
         yield button[][str "Backspace"]
         yield button[][str "0"]
         yield button[][str "ENTER"]
-        yield button[][str "Show hints"]
+        yield button[ClassName "hintButton"][str "Show hints"]
       ]
       div[ClassName "hints"][str "Hints"]
     ]
