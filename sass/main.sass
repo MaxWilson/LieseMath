@@ -3,21 +3,28 @@
 
 .app
   display: grid
-  grid: "h h h" "d d d" "i i i" "hn hn hn"
+  grid: "h h h" "d d d" 200px "i i i" "hn hn hn"
 
 .header
   grid-area: h
   display: flex
+  justify-content: flex-end
+
+.score
+  flex: 1
+  font-size: 200%
+  text-align: center
+  grid-area: h
 
 .display
+  text-align: center
   grid-area: d
+  font-size: 200%
+  font-weight: bold
   border: 2px solid black
   padding: 5px
   justify-content: center
   align-content: center
-
-.showOptions
-  margin-left: auto
 
 .keypad
   @extend .colorized  
@@ -26,6 +33,9 @@
   grid-area: i
   grid-template-columns: repeat(3, minmax(100px, 1fr))
   grid-auto-rows: 100px
+
+.keypad > button
+  font-size: 200%
 
 .hints
   grid-area: hn

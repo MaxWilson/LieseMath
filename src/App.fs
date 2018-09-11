@@ -66,14 +66,19 @@ let root model dispatch =
   div [
     ClassName "app"
     ] [
+      div[ClassName "score"] [str "Score: 0"]
       div[ClassName "header"][
-        div[] [str "Score: 0"]
-        button [ClassName "showOptions"][str "Options"]
+        button [][str "Reset"]
+        button [][str "Options"]
       ]
-      div[ClassName "display"][str "Display"]
+      h2[ClassName "display"][str "3 x 5 = ??"]
       div[ClassName "keypad"] [
-        for x in 1..10 do
-          yield div[][str <| x.ToString()]
+        for x in 1..9 do
+          yield button[][str <| x.ToString()]
+        yield button[][str "Backspace"]
+        yield button[][str "0"]
+        yield button[][str "ENTER"]
+        yield button[][str "Show hints"]
       ]
       div[ClassName "hints"][str "Hints"]
     ]
