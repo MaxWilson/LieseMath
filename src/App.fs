@@ -62,6 +62,12 @@ let root1 model dispatch =
                     [ ClassName "column" ]
                     [ pageHtml model.currentPage ] ] ] ] ]
 
+type Message = Toggle
+let init _ = true, Cmd.none
+let update msg model =
+  match msg with
+  | Toggle -> not model, Cmd.none
+
 let root model dispatch =
   div [
     ClassName "app"
@@ -69,17 +75,29 @@ let root model dispatch =
       div[ClassName "score"] [str "Score: 0"]
       div[ClassName "header"][
         button [][str "Reset"]
-        button [][str "Options"]
+        button [OnClick <| fun _ -> dispatch Toggle][str "Options"]
       ]
       div[ClassName "display"][str "3 x 5 = ??"]
-      div[ClassName "keypad"] [
-        for x in 1..9 do
-          yield button[][str <| x.ToString()]
-        yield button[][str "Backspace"]
-        yield button[][str "0"]
-        yield button[][str "ENTER"]
-        yield button[ClassName "hintButton"][str "Show hints"]
-      ]
+      (if model then
+        div[ClassName "keypad-decimal"] [
+          for x in 1..9 do
+            yield button[][str <| x.ToString()]
+          yield button[][str "Backspace"]
+          yield button[][str "0"]
+          yield button[][str "ENTER"]
+          yield button[ClassName "hintButton"][str "Show hints"]
+        ]
+      else
+        div[ClassName "keypad-hex"] [
+          for x in 1..9 do
+            yield button[][str <| x.ToString()]
+          for x in 'A'..'F' do
+            yield button[][str <| x.ToString()]
+          yield button[][str "0"]
+          yield button[ClassName "hintButton"][str "Show hints"]
+          yield button[][str "Backspace"]
+          yield button[][str "ENTER"]
+        ])
       div[ClassName "hints"][str "Hints"]
     ]
 
@@ -89,7 +107,7 @@ open Elmish.HMR
 
 // App
 Program.mkProgram init update root
-|> Program.toNavigable (parseHash pageParser) urlUpdate
+//|> Program.toNavigable (parseHash pageParser) urlUpdate
 #if DEBUG
 |> Program.withDebugger
 |> Program.withHMR
