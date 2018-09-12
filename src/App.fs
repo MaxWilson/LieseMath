@@ -94,9 +94,9 @@ let root model dispatch =
           for x in 'A'..'F' do
             yield button[][str <| x.ToString()]
           yield button[][str "0"]
-          yield button[ClassName "hintButton"][str "Show hints"]
           yield button[][str "Backspace"]
           yield button[][str "ENTER"]
+          yield button[ClassName "hintButton"][str "Show hints"]
         ])
       div[ClassName "hints"][str "Hints"]
     ]
