@@ -2,6 +2,14 @@
 @import '../node_modules/bulma/bulma'
 
 .app
+  display: flex
+  flex-direction: column
+
+@media only screen and (min-width: 800px)
+  .app
+    // flex-direction: row
+
+.ui
   display: grid
   grid: "h h h" ". d ." auto ". i ." 35% ". hn ."
 
@@ -54,10 +62,35 @@
   grid-row: 5
 
 .hints
-  grid-area: hn
+  margin: 0px auto
+
+.hintTable
+  margin: 20px
+
+.hintCell
+  border: 1px solid black;
+  padding: 5px;
+  text-align: center;
+  width: 40px;
+
+.hintDisplay
+  flex: 0 1 100%;
+  border-left: 10px solid transparent;
+  display: inline-flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-flow: column nowrap;
+
+.reviewList
+  list-style: none;
+  overflow: auto;
+  color: red;
+  font-weight: bold;
+  font-size: 130%;
+  width: 70%;
 
 .gap
-  grid-gap: 3px
+  grid-gap: 5px
 
 .colorized
  > div:nth-child(1n)

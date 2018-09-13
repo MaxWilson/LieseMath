@@ -69,9 +69,8 @@ let update msg model =
   | Toggle -> not model, Cmd.none
 
 let root model dispatch =
-  div [
-    ClassName "app"
-    ] [
+  div [ClassName "app"] [
+    div [ClassName "ui"] [
       div[ClassName "score"] [str "Score: 0"]
       div[ClassName "header"][
         button [][str "Reset"]
@@ -98,18 +97,19 @@ let root model dispatch =
           yield button[][str "ENTER"]
           yield button[ClassName "hintButton"][str "Show hints"]
         ])
-      div[ClassName "hints"][
-        yield table [ClassName "hinttable"] [
-          tbody [] [
-            for x in 1..12 do
-              yield tr [] [for y in 1..12 -> td [] [str <| (x*y).ToString()]]
-            ]
-          ul [ClassName "reviewList"] [
-            li [] [str <| sprintf "%s = %s (you guessed %s)" "5x5" "25" "7"]
+      ]
+    div[ClassName "hints"][
+      yield table [ClassName "hintTable"] [
+        tbody [] [
+          for x in 1..12 do
+            yield tr [] [for y in 1..12 -> td [ClassName "hintCell"] [str <| (x*y).ToString()]]
           ]
-        ]
+      ]
+      yield ul [ClassName "reviewList"] [
+        li [] [str <| sprintf "%s = %s (you guessed %s)" "5x5" "25" "7"]
       ]
     ]
+  ]
 
 open Elmish.React
 open Elmish.Debug
