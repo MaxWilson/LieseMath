@@ -98,7 +98,17 @@ let root model dispatch =
           yield button[][str "ENTER"]
           yield button[ClassName "hintButton"][str "Show hints"]
         ])
-      div[ClassName "hints"][str "Hints"]
+      div[ClassName "hints"][
+        yield table [ClassName "hinttable"] [
+          tbody [] [
+            for x in 1..12 do
+              yield tr [] [for y in 1..12 -> td [] [str <| (x*y).ToString()]]
+            ]
+          ul [ClassName "reviewList"] [
+            li [] [str <| sprintf "%s = %s (you guessed %s)" "5x5" "25" "7"]
+          ]
+        ]
+      ]
     ]
 
 open Elmish.React
