@@ -1,25 +1,22 @@
 const path = require("path");
 const webpack = require("webpack");
-const fableUtils = require("fable-utils");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+const babelConf = {
+  presets: [ 
+    ["@babel/preset-env", {
+      "modules":false,
+      "corejs": 3,
+      "useBuiltIns": "usage"
+    }]
+]}
 
 
 function resolve(filePath) {
     return path.join(__dirname, filePath)
 }
-
-var babelOptions = fableUtils.resolveBabelOptions({
-    presets: [
-        ["env", {
-            "targets": {
-                "browsers": ["last 2 versions"]
-            },
-            "modules": false
-        }]
-    ]
-});
 
 var isProduction = process.argv.indexOf("-p") >= 0;
 console.log("Bundling for " + (isProduction ? "production" : "development") + "...");
@@ -36,13 +33,11 @@ module.exports = {
     entry: isProduction ? // We don't use the same entry for dev and production, to make HMR over style quicker for dev env
         {
             demo: [
-                "babel-polyfill",
                 resolve('./src/BMath.fsproj'),
                 resolve('./sass/main.sass')
             ]
         } : {
             app: [
-                "babel-polyfill",
                 resolve('./src/BMath.fsproj')
             ],
             style: [
@@ -83,23 +78,26 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.fs(x|proj)?$/,
-                use: {
-                    loader: "fable-loader",
-                    options: {
-                        babel: babelOptions,
-                        define: isProduction ? [] : ["DEBUG"],
-                        extra: { optimizeWatch: true }
-                    }
+              test: /\.fs(x|proj)?$/,
+              use: {
+                loader: "fable-loader",
+                options: {
+                  babel: babelConf,
+                  define: isProduction ? [] : ["DEBUG"],
+                  extra: { optimizeWatch: true }
                 }
+              }
             },
             {
-                test: /\.js$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: 'babel-loader',
-                    options: babelOptions
-                },
+              test: /\.js$/,
+              include: path.resolve(__dirname, 'split'),
+              exclude: /(node_modules|build)/,
+              use: {
+                loader: 'babel-loader',
+                options: {
+                  babel: babelConf
+                }
+              }
             },
             {
                 test: /\.s?[ac]ss$/,
