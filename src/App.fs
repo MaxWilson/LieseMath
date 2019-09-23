@@ -9,58 +9,9 @@ open Fable.Import
 open Fable.Import.Browser
 open Types
 open App.State
-open Global
 
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
-
-let menuItem label page currentPage =
-    li
-      [ ]
-      [ a
-          [ classList [ "is-active", page = currentPage ]
-            Href (toHash page) ]
-          [ str label ] ]
-
-let menu currentPage =
-  aside
-    [ ClassName "menu" ]
-    [ p
-        [ ClassName "menu-label" ]
-        [ str "General" ]
-      ul
-        [ ClassName "menu-list" ]
-        [ menuItem "Home" Home currentPage
-          menuItem "Counter sample" Counter currentPage
-          menuItem "About" Page.About currentPage ] ]
-
-let root1 model dispatch =
-
-  let pageHtml =
-    function
-    | Page.About -> Info.View.root
-    | Counter -> Counter.View.root model.counter (CounterMsg >> dispatch)
-    | Home -> Home.View.root model.home (HomeMsg >> dispatch)
-
-  div
-    []
-    [ div
-        [ ClassName "navbar-bg" ]
-        [ div
-            [ ClassName "container" ]
-            [ Navbar.View.root ] ]
-      div
-        [ ClassName "section" ]
-        [ div
-            [ ClassName "container" ]
-            [ div
-                [ ClassName "columns" ]
-                [ div
-                    [ ClassName "column is-3" ]
-                    [ menu model.currentPage ]
-                  div
-                    [ ClassName "column" ]
-                    [ pageHtml model.currentPage ] ] ] ] ]
 
 type Message = Toggle
 let init _ = true, Cmd.none
@@ -68,7 +19,7 @@ let update msg model =
   match msg with
   | Toggle -> not model, Cmd.none
 
-let root model dispatch =
+let view model dispatch =
   div [ClassName "app"] [
     div [ClassName "ui"] [
       div[ClassName "score"] [str "Score: 0"]
@@ -115,18 +66,6 @@ open Elmish.React
 open Elmish.Debug
 open Elmish.HMR
 
-module Rewrite =
-    type Model = string
-    type Message = Message of string
-    let view model dispatch =
-        div [] [
-            str model
-            ]
-    let init _ = "Hello World", Cmd.Empty
-    let update msg model =
-        match msg with
-        | Message m -> m, Cmd.Empty
-let view = root
 // App
 Program.mkProgram init update view
 //|> Program.toNavigable (parseHash pageParser) urlUpdate
