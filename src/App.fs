@@ -115,12 +115,23 @@ open Elmish.React
 open Elmish.Debug
 open Elmish.HMR
 
+module Rewrite =
+    type Model = string
+    type Message = Message of string
+    let view model dispatch =
+        div [] [
+            str model
+            ]
+    let init _ = "Hello World", Cmd.Empty
+    let update msg model =
+        match msg with
+        | Message m -> m, Cmd.Empty
+let view = root
 // App
-Program.mkProgram init update root
+Program.mkProgram init update view
 //|> Program.toNavigable (parseHash pageParser) urlUpdate
 #if DEBUG
 |> Program.withDebugger
-|> Program.withHMR
 #endif
 |> Program.withReact "main"
 |> Program.run
