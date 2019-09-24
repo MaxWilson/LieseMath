@@ -7,8 +7,6 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.Browser
-open Types
-open App.State
 
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
@@ -20,7 +18,7 @@ let update msg model =
   | Toggle -> not model, Cmd.none
 
 let view model dispatch =
-  div [ClassName "app"] [
+  div [ClassName "app shell columnDisplay"] [
     div [ClassName "ui"] [
       div[ClassName "score"] [str "Score: 0"]
       div[ClassName "header"][
