@@ -1,81 +1,70 @@
 // Colors
-@import '../node_modules/bulma/bulma'
+//@import '../node_modules/bulma/bulma'
 
-.app
-  display: flex
-  flex-direction: column
-
-@media only screen and (min-width: 800px)
-  .app
-    // flex-direction: row
+html
+ height: 100%
+body 
+  height: 95%
 
 .ui
-  display: grid
-  grid: "h h h" ". d ." auto ". i ." 35% ". hn ."
+  display: flex
+  flex-direction: column
+  height: 100% 
+  width: 100%
+
+.shell
+  height: 100% 
+  width: 100%
+  dispaly: inline-flex
+
+.rowDisplay
+  flex-direction: row
+
+
+.columnDisplay
+  flex-direction: column
+
+
+.scoreDisplay
+  text-align: center
+
 
 .header
-  grid-area: h
-  display: flex
+  flex-direction: row
+  display: inline-flex
+
+.header
   justify-content: flex-end
+  button  
+    font-size: 200%
+  .resetButton
+    flex: 0 1 auto
 
-.score
-  flex: 1
-  font-size: 2em
-  text-align: center
-  grid-area: h
-
-.display
-  display: flex
-  text-align: center
-  align-items: center
-  align-self: stretch
-  grid-area: d
-  font-size: 2em
-  font-weight: bold
-  border: 2px solid black
-  padding: 5px
-  justify-content: center
-  align-content: center
-
-.keypad-decimal
-  @extend .keypad
-  grid-template-columns: repeat(3, minmax(60px, 1fr))
-.keypad-hex
-  @extend .keypad
-  grid-template-columns: repeat(4, minmax(60px, 1fr))
 
 .keypad
-  @extend .colorized  
-  @extend .gap
-  display: grid
-  grid-area: i
-  grid-auto-rows: 80px
-  grid-auto-flow: row dense
-
-.keypad > button
-  font-size: 2em
-
-.keypad-decimal .hintButton
-  grid-column: 1/-1
-.keypad-hex .hintButton
-  grid-column: 1/span 2
-  grid-row: 5
-
-.hints
-  margin: 0px auto
-
-.hintTable
-  border-spacing: 2px
-  border-collapse: separate
-  margin: 20px
+  display: inline-flex
+  flex-direction: column
+  flex: 1 1 100%
 
 
-.hintCell
-  border: 1px solid black
+.numDisplay
+  border: 2px solid black
   padding: 5px
-  text-align: center
-  width: 40px
-  margin: 2px
+  flex: 1 1 30%
+  justify-content: center
+  align-items: center
+  display: flex
+
+
+.keyList
+  flex-direction: row
+  display: inline-flex
+  flex-wrap: wrap
+  flex: 1 1 60%
+  button
+    flex: 1 1 30%
+    font-size: 200%
+
 
 .hintDisplay
   flex: 0 1 100%
@@ -85,29 +74,100 @@
   align-items: center
   flex-flow: column nowrap
 
+  .hintTable
+    font-size: 1.5em
+    .hintCell
+      border: 1px solid black
+      padding: 5px
+      text-align: center
+      width: 40px
+    .needsReview
+      background-color: red
+      color: white
+
+    .correct
+      background-color: green
+      color: white
+
+    .chromeOnly
+      background-color: lightgrey
+
+.hide
+  display: none
+
 .reviewList
-  list-style: none
-  overflow: auto
+  list-style:none
+  overflow:auto
   color: red
   font-weight: bold
   font-size: 130%
   width: 70%
 
-.gap
-  grid-gap: 5px
+.optionsDisplay
+  display: flex
+  flex: 0 1 100%
+  justify-content: space-around
+  align-items: center
+  flex-flow: column nowrap
+  padding: 4px
 
-.colorized
- > div:nth-child(1n)
-  background-color: #96ceb4	
 
-.colorized
- > div:nth-child(3n) 
-  background-color: #88d8b0
+.optionInput
+  padding: 2px
+  font-size: 150%
+  margin: 10px
+  flex: 0 1 auto
 
-.colorized
- > div:nth-child(2n) 
-  background-color: #ff6f69
 
-.colorized
- > div:nth-child(4n) 
-  background-color: #ffcc5c
+.optionDoneButton
+  flex: 0 1 auto
+  font-size: 200%
+
+
+.optionSpan
+    display: inline-flex
+
+
+.optionLabel
+  font-size: 200%
+  margin: 5px
+
+
+.option
+  border: 1px solid black
+  margin: 5px
+  font-size: 200%
+  background-color: white
+  flex: 1 1 25%
+
+
+.option.selected
+  background-color: greenyellow
+
+
+@media(max-width:30em)
+  body
+    font-size:12px
+  
+  .hintcell
+    width: 10px
+    font-size: 8px
+  
+  .rowDisplay
+    flex-direction: column
+  
+  .keypad
+    min-height: -moz-min-content
+    min-height: -webkit-min-content
+    min-height: min-content
+  
+  .keyList
+    min-height: -moz-min-content
+    min-height: -webkit-min-content
+    min-height: min-content
+  
+  .hintDisplay
+    min-height: -moz-min-content
+    min-height: -webkit-min-content
+    min-height: min-content
+  

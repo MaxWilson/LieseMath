@@ -20,14 +20,14 @@ let update msg model =
 let view model dispatch =
   div [ClassName "app shell columnDisplay"] [
     div [ClassName "ui"] [
-      div[ClassName "score"] [str "Score: 0"]
       div[ClassName "header"][
         button [][str "Reset"]
         button [OnClick <| fun _ -> dispatch Toggle][str "Options"]
       ]
-      div[ClassName "display"][str "3 x 5 = ??"]
+      h3[ClassName "scoreDisplay"] [str "Score: 0"]
+      div[ClassName "numDisplay"][str "3 x 5 = ??"]
       (if model then
-        div[ClassName "keypad-decimal"] [
+        div[ClassName "keyList"] [
           for x in 1..9 do
             yield button[][str <| x.ToString()]
           yield button[][str "Backspace"]
@@ -36,7 +36,7 @@ let view model dispatch =
           yield button[ClassName "hintButton"][str "Show hints"]
         ]
       else
-        div[ClassName "keypad-hex"] [
+        div[ClassName "keyList"] [
           for x in 1..9 do
             yield button[][str <| x.ToString()]
           for x in 'A'..'F' do
@@ -47,11 +47,11 @@ let view model dispatch =
           yield button[ClassName "hintButton"][str "Show hints"]
         ])
       ]
-    div[ClassName "hints"][
+    div[ClassName "hintDisplay"][
       yield table [ClassName "hintTable"] [
         tbody [] [
-          for x in 1..12 do
-            yield tr [] [for y in 1..12 -> td [ClassName "hintCell"] [str <| (x*y).ToString()]]
+          for x in 1..4 do
+            yield tr [] [for y in 1..4 -> td [ClassName "hintCell"] [str <| (x*y).ToString()]]
           ]
       ]
       yield ul [ClassName "reviewList"] [
