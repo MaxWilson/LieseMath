@@ -22,7 +22,7 @@ type IntegerInputProps = { label: string; min: int; max: int; get: unit -> int; 
 
 type HintTable(props: HintProps) =
     inherit React.Component<HintProps, HintState>(props)
-    member x.render() =
+    override x.render() =
         let makeCell (cell: string * AnswerState ref) =
             let needsReview = !(snd cell)
             R.td [ClassName (needsReview |> function | NeedsReview -> "hintcell needsreview" | Good -> "hintcell correct" | NoAnswer -> "hintcell" | ChromeOnly -> "hintcell chromeOnly")] [unbox (fst cell)]
@@ -32,7 +32,7 @@ type HintTable(props: HintProps) =
 
 type Selector<'a  when 'a: equality>(props: SelectorProps<'a>) =
     inherit React.Component<SelectorProps<'a>, unit>(props)
-    member this.render() =
+    override this.render() =
         let selected = props.get()
         R.div [] [
             R.text [ClassName "optionLabel"] [unbox props.label]
@@ -50,13 +50,13 @@ type Selector<'a  when 'a: equality>(props: SelectorProps<'a>) =
 
 type IntegerInput(props: IntegerInputProps) =
     inherit React.Component<IntegerInputProps, unit>(props)
-    member this.componentWillMount() =
+    override this.componentWillMount() =
         // this is kind of hackish, but we're adjusting min/max whenever settings are displayed
         if props.get() < props.min then
             props.set props.min
         elif props.get() > props.max then
             props.set props.max
-    member this.render() =
+    override this.render() =
         R.div [] [
             R.text [ClassName "optionLabel"] [unbox props.label]
             R.span [ClassName "optionSpan"]
@@ -64,8 +64,8 @@ type IntegerInput(props: IntegerInputProps) =
                     ClassName "option"
                     OnChange (fun e ->
                                   let v : string = (e.target?value) |> unbox
-                                  match JS.Number.parseInt v with
-                                  | x when JS.isNaN x -> ()
+                                  match JS.parseInt v 10 with
+                                  | x when JS.isNaN (unbox <| box x) -> ()
                                   | n ->
                                     let n = int n
                                     if n < props.min then
@@ -127,8 +127,8 @@ type MathBox() as this =
             | "o" -> toggleOptions()
             | _ -> ()
         else
-            let x = JS.Number.parseInt key
-            if not (JS.Number.isNaN x) then
+            let x = JS.parseInt key 10
+            if not (JS.Number.isNaN (box x |> unbox)) then
                 prob.KeyPress(int x)
                 this.forceUpdate()
             else
@@ -157,8 +157,8 @@ type MathBox() as this =
                     ev.preventDefault()
             | _ -> ()
     member this.componentDidMount() =
-        Browser.document.addEventListener("keydown", EventListenerOrEventListenerObject.Case1(EventListener2 onKeyDown), true)
-    member this.render () =
+        Browser.document.addEventListener("keydown", EventListenerOrEventListenerObject.Case1(onKeyDown), true)
+    override this.render () =
         let onClickDo handler =
             OnClick (fun _ ->
                         handler()

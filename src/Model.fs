@@ -83,12 +83,14 @@ type PersistentSetting<'a when 'a: equality>(name: string, defaultValue: 'a) =
         if stringVal = null then
             defaultValue
         else
-            Fable.Core.JsInterop.ofJson<'a>(unbox stringVal)
+            match Thoth.Json.Decode.Auto.fromString<'a>(unbox<string> stringVal) with
+            | Ok v -> v
+            | Error e -> failwithf "Could not decode %A" stringVal
     member this.Value
         with get() = storedValue
         and set(v) =
             if storedValue <> v then
-                Fable.Import.Browser.localStorage.[key] <- Fable.Core.JsInterop.toJson(v)
+                Fable.Import.Browser.localStorage.[key] <- Thoth.Json.Encode.Auto.toString(1, v)
                 storedValue <- v
 
 // I don't trust JS.Math.random() (samples don't seem very independent) so instead of using it directly via Math.random() < prob-as-decimal I transform it a bit
