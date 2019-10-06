@@ -5,6 +5,9 @@ open Fable.Core.JsInterop
 open Fable.Import
 
 type AnswerState = | NeedsReview | Good | NoAnswer | ChromeOnly
+module Seq =
+    let every pred = not << Seq.exists pred
+
 module Enums =
     type MathKey = | Number of int * string | Enter | Backspace | HintKey
     type MathType = | Plus | Minus | Times | Divide
@@ -47,13 +50,13 @@ let ComputeHints size mathBase mathType =
     | Enums.Plus | Enums.Minus ->
         [for x in 0..size ->
             [for y in 0..size ->
-                FormatByBase mathBase (x+y), ref (if x = 0 || y = 0 then ChromeOnly else NoAnswer)
+                FormatByBase mathBase (x+y), (if x = 0 || y = 0 then ChromeOnly else NoAnswer)
                 ]
             ]
     | Enums.Times | Enums.Divide ->
         [for x in 1..size ->
             [for y in 1..size ->
-                FormatByBase mathBase (x*y), ref NoAnswer
+                FormatByBase mathBase (x*y), NoAnswer
                 ]
             ]
 
@@ -75,6 +78,36 @@ let FormatProblem mathType mathBase lhs rhs =
     let symbol = Enums.mathTypeMappings |> Seq.find (fun (k,v) -> k = mathType) |> snd
     sprintf "%s %s %s" (FormatByBase mathBase lhs) symbol (FormatByBase mathBase rhs)
 
+// I don't trust JS.Math.random() (samples don't seem very independent) so instead of using it directly via Math.random() < prob-as-decimal I transform it a bit
+let prob percentage =
+    JS.Math.random() < (float percentage)/100.
+
+let persist key value =
+    Fable.Import.Browser.localStorage.[key] <- Thoth.Json.Encode.Auto.toString(1, value)
+
+let retrievePersisted key defaultValue =
+    match Fable.Import.Browser.localStorage.[key:string] with
+    | null -> defaultValue
+    | rawValue ->
+        match Thoth.Json.Decode.Auto.fromString(unbox<string> rawValue) with
+        | Ok v -> v
+        | Error _ -> failwithf "Could not decode %A" defaultValue
+
+type Settings = {
+    size: int
+    mathBase: Enums.MathBase
+    mathType: Enums.MathType
+    autoEnter: bool
+    progressiveDifficulty: bool
+    } with
+    static member Default = {
+        size = 12
+        mathBase = Decimal
+        mathType = Enums.Times
+        autoEnter = false
+        progressiveDifficulty = true
+    }
+
 /// PersistentSetting is a setting which is cached between sessions in local storage
 type PersistentSetting<'a when 'a: equality>(name: string, defaultValue: 'a) =
     let key = "Setting." + name
@@ -93,9 +126,95 @@ type PersistentSetting<'a when 'a: equality>(name: string, defaultValue: 'a) =
                 Fable.Import.Browser.localStorage.[key] <- Thoth.Json.Encode.Auto.toString(1, v)
                 storedValue <- v
 
-// I don't trust JS.Math.random() (samples don't seem very independent) so instead of using it directly via Math.random() < prob-as-decimal I transform it a bit
-let prob percentage =
-    JS.Math.random() < (float percentage)/100.
+type Review = { lhs: int; rhs: int; problem: string; guess: string; correctAnswer: string }
+
+let cellFor (cells: _ list list) mathType x y =
+    match mathType with
+        | Enums.Plus | Enums.Minus -> cells.[x].[y] |> snd
+        | Enums.Times | Enums.Divide -> cells.[x-1].[y-1] |> snd
+
+type Game = {
+    settings: Settings
+    reviewList: Review list
+    cells: (string * AnswerState) list list
+    problem: {| lhs: int; rhs: int; question: string; answer: string |}
+    score: int
+    currentAnswer: string
+    } with
+    static member Fresh(?settings) =
+        let settings = match settings with | Some v -> v | None -> retrievePersisted "settings" Settings.Default
+        {
+            settings = settings
+            reviewList = []
+            cells = ComputeHints settings.size settings.mathBase settings.mathType
+            problem = Unchecked.defaultof<_>
+            score = 0
+            currentAnswer = ""
+        } |> Game.nextProblem
+    static member nextProblem (g: Game) =
+        // 30% of the time it will backtrack to one you got wrong before
+        if(prob 30 && g.reviewList.Length > 0) then
+            let review = g.reviewList.[(JS.Math.random() * 1000. |> int) % g.reviewList.Length]
+            { g with problem = {| lhs = review.lhs; rhs = review.rhs; question = review.problem; answer = review.correctAnswer |} }
+        else
+            let settings = g.settings
+            // in progressive difficulty mode, 70% of the time, it will pick a problem you haven't answered correctly yet until you answer all of them, then it will grow (with 100% probability)
+            let flattenedCells = Seq.concat g.cells
+            let allCorrect = flattenedCells |> Seq.every (fun (_, c) -> match c with | Good | ChromeOnly -> true | _ -> false)
+            if (settings.progressiveDifficulty && (prob 70 || allCorrect)) then
+                // if all already answered, grow to next level
+                let cells, settings = 
+                    // note that <> does not work right with union types currently so we have to use match instead
+                    if allCorrect then
+                        let settings = { settings with size = settings.size + 1 }
+                        let newHints =
+                            ComputeHints settings.size settings.mathBase settings.mathType
+                            |> List.mapi(fun i row ->
+                                row |> List.mapi(fun j cell ->
+                                        if i < g.cells.Length && j < g.cells.[i].Length then
+                                            g.cells.[i].[j]
+                                        else
+                                            cell
+                                    )
+                                )
+                        newHints, settings
+                    else g.cells, settings
+                let nextNumber() = (JS.Math.random() * (float settings.size) |> int) + 1
+                let mutable j, k = nextNumber(), nextNumber()
+                // note that <> does not work right with union types currently so we have to use match instead
+                while(match (cellFor cells settings.mathType j k) with
+                        | Good -> true
+                        | _ -> false) do
+                    j <- nextNumber()
+                    k <- nextNumber()
+                let lhs, rhs, problem, answer = ComputeProblem settings.mathType j k settings.mathBase
+                { g with settings = settings; cells = cells; problem = {|lhs = lhs; rhs = rhs; question = problem; answer = answer |}}
+            else
+                let nextNumber() = (JS.Math.random() * (float settings.size) |> int) + 1
+                let j, k = nextNumber(), nextNumber()
+                let lhs, rhs, problem, answer = ComputeProblem settings.mathType j k settings.mathBase
+                { g with problem = {|lhs = lhs; rhs = rhs; question = problem; answer = answer |}}
+    static member CurrentProblem (this: Game) =
+        sprintf "%s = %s" this.problem.question (if this.currentAnswer.Length > 0 then this.currentAnswer else "??")
+    static member Advance (this: Game) onCorrect onIncorrect =
+        let currentAnswer = this.currentAnswer
+        if this.currentAnswer.Length > 0 then
+            let problem = this.problem
+            let answerCell = cellFor this.cells this.settings.mathType problem.lhs problem.rhs
+            if problem.answer = currentAnswer then
+                onCorrect()
+                score <- score + 100
+                answerCell := Good
+                if reviewList |> Seq.exists (fun (j, k, _, _, _) -> j = x && k = y) then
+                    // now that they've got it correct, eliminate it from the review list
+                    reviewList <- reviewList |> List.filter (fun (j, k, _, _, _) -> not (j = x && k = y))
+            else
+                score <- score - 100
+                answerCell := NeedsReview
+                reviewList <- ((x, y, prob, ans, currentAnswer) :: reviewList)
+                onIncorrect()
+            currentAnswer <- "";
+
 
 type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
     let size = PersistentSetting("size", 12);
@@ -104,46 +223,12 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
     let autoEnter = PersistentSetting("autoEnter", false)
     let progressiveDifficulty = PersistentSetting("progressiveDifficulty", false)
     let mutable reviewList = []
-    let mutable cells : (string * AnswerState ref) list list = ComputeHints size.Value mathBase.Value mathType.Value
+    let mutable cells : (string * AnswerState) list list = ComputeHints size.Value mathBase.Value mathType.Value
     let cellFor mathType x y =
         match mathType with
             | Enums.Plus | Enums.Minus -> cells.[x].[y] |> snd
             | Enums.Times | Enums.Divide -> cells.[x-1].[y-1] |> snd
-    let nextProblem() =
-        // 30% of the time it will backtrack to one you got wrong before
-        if(prob 30 && reviewList.Length > 0) then
-            let (j, k, prob, correctAnswer, _) = reviewList.[(JS.Math.random() * 1000. |> int) % reviewList.Length]
-            (j, k, prob, correctAnswer)
-        else
-            let nextNumber() = (JS.Math.random() * (float size.Value) |> int) + 1
-            // in progressive difficulty mode, 70% of the time, it will pick a problem you haven't answered correctly yet
-            if (progressiveDifficulty.Value && prob 70) then
-                // if all already answered, grow to next level
-                let flattenedCells = Seq.concat cells
-                // note that <> does not work right with union types currently so we have to use match instead
-                if not (flattenedCells |> Seq.exists (fun (v, c) -> match !c with | Good | ChromeOnly -> false | _ -> true)) then
-                    let bigger = size.Value + 1
-                    size.Value <- bigger
-                    let newHints = ComputeHints bigger mathBase.Value mathType.Value
-                    for oldrow, newrow in newHints |> Seq.zip cells do
-                        for oldcell, newcell in newrow |> Seq.zip oldrow do
-                            // note that <> does not work right with union types currently so we have to use match instead
-                            match !(snd oldcell) with
-                            | Good | NeedsReview as v -> (snd newcell) := v
-                            | _ -> ()
-                    cells <- newHints
-                let mutable j, k = nextNumber(), nextNumber()
-                // note that <> does not work right with union types currently so we have to use match instead
-                while(match !(cellFor mathType.Value j k) with
-                        | Good -> true
-                        | _ -> false) do
-                    j <- nextNumber()
-                    k <- nextNumber()
-                ComputeProblem mathType.Value j k mathBase.Value
-            else
-                let j, k = nextNumber(), nextNumber()
-                ComputeProblem mathType.Value j k mathBase.Value
-    let mutable problem = nextProblem()
+    let mutable problem = Unchecked.defaultof<_>
     let mutable score = 0
     let mutable currentAnswer = "";
     member this.MathBase
@@ -184,7 +269,6 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
                 reviewList <- ((x, y, prob, ans, currentAnswer) :: reviewList)
                 onIncorrect()
             currentAnswer <- "";
-            problem <- nextProblem()
     member this.HintCells =
         cells
     member this.ReviewList =
