@@ -11,7 +11,7 @@ open Fable.Import.Browser
 open Model
 open View
 
-let init _ = true, Cmd.none
+let init _ = Game.Fresh(), Cmd.none
 let update msg model =
   match msg with
-  | Toggle -> not model, Cmd.none
+  | NoOp -> model, Cmd.none

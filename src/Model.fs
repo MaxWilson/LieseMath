@@ -17,6 +17,7 @@ module Enums =
     let HexKeys = [1..9] |> List.map numberKey |> (fun x -> List.append x [Number(10, "A"); Number(11, "B"); Number(12, "C"); Number(13, "D"); Number(14, "E"); Number(15, "F"); Backspace; numberKey 0; Enter; HintKey])
     let BinaryKeys = [Backspace; numberKey 1; numberKey 0; Enter; HintKey]
     let mathTypeMappings = [Plus, "+"; Minus, "−"; Times, "×"; Divide, "÷"]
+    let keysOf = function Binary -> BinaryKeys | Decimal -> DecimalKeys | Hex -> HexKeys
 
 open Enums
 
@@ -143,6 +144,7 @@ type Game = {
     problem: {| lhs: int; rhs: int; question: string; answer: string |}
     score: int
     currentAnswer: string
+    messageToUser: string option
     } with
     static member Fresh(?settings) =
         let settings = match settings with | Some v -> v | None -> retrievePersisted "settings" Settings.Default
@@ -153,6 +155,7 @@ type Game = {
             problem = Unchecked.defaultof<_>
             score = 0
             currentAnswer = ""
+            messageToUser = None
         } |> Game.nextProblem
     static member nextProblem (g: Game) =
         // 30% of the time it will backtrack to one you got wrong before
