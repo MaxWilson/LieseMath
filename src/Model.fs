@@ -128,10 +128,13 @@ type PersistentSetting<'a when 'a: equality>(name: string, defaultValue: 'a) =
 
 type Review = { lhs: int; rhs: int; problem: string; guess: string; correctAnswer: string }
 
-let cellFor (cells: _ list list) mathType x y =
+let coordsFor mathType x y =
     match mathType with
-        | Enums.Plus | Enums.Minus -> cells.[x].[y] |> snd
-        | Enums.Times | Enums.Divide -> cells.[x-1].[y-1] |> snd
+        | Enums.Plus | Enums.Minus -> x,y
+        | Enums.Times | Enums.Divide -> x-1,y-1
+let cellFor (cells: _ list list) mathType x y =
+    let i,j = coordsFor mathType x y
+    cells.[i].[j] |> snd
 
 type Game = {
     settings: Settings
@@ -196,24 +199,32 @@ type Game = {
                 { g with problem = {|lhs = lhs; rhs = rhs; question = problem; answer = answer |}}
     static member CurrentProblem (this: Game) =
         sprintf "%s = %s" this.problem.question (if this.currentAnswer.Length > 0 then this.currentAnswer else "??")
-    static member Advance (this: Game) onCorrect onIncorrect =
+    static member TryAdvance (this: Game) onCorrect onIncorrect =
         let currentAnswer = this.currentAnswer
         if this.currentAnswer.Length > 0 then
             let problem = this.problem
-            let answerCell = cellFor this.cells this.settings.mathType problem.lhs problem.rhs
+            let (x,y) = coordsFor this.settings.mathType problem.lhs problem.rhs
+            let updateCells newValue =
+                this.cells |> List.mapi(fun i row ->
+                        if x <> i then row else
+                            row |> List.mapi(fun j cell ->
+                                if y <> j then cell else (fst cell, newValue))
+                    )
             if problem.answer = currentAnswer then
                 onCorrect()
-                score <- score + 100
-                answerCell := Good
-                if reviewList |> Seq.exists (fun (j, k, _, _, _) -> j = x && k = y) then
+                let reviewList' =
+                    if this.reviewList |> Seq.exists (fun review -> (review.lhs, review.rhs) = (problem.lhs, problem.rhs)) then
                     // now that they've got it correct, eliminate it from the review list
-                    reviewList <- reviewList |> List.filter (fun (j, k, _, _, _) -> not (j = x && k = y))
+                        this.reviewList |> List.filter (fun review -> (review.lhs, review.rhs) <> (problem.lhs, problem.rhs)) 
+                    else this.reviewList
+                { this with currentAnswer = ""; score = this.score + 100; cells = updateCells Good; reviewList = reviewList' }
             else
-                score <- score - 100
-                answerCell := NeedsReview
-                reviewList <- ((x, y, prob, ans, currentAnswer) :: reviewList)
                 onIncorrect()
-            currentAnswer <- "";
+                let reviewList' =
+                    { Review.lhs = problem.lhs; rhs = problem.rhs; problem = problem.question; correctAnswer = problem.answer; guess = this.currentAnswer } :: this.reviewList
+                { this with currentAnswer = ""; score = this.score - 100; cells = updateCells NeedsReview; reviewList = reviewList' }
+        else
+            this
 
 
 type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
@@ -252,23 +263,6 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
     member this.CurrentProblem =
         let _, _, prob, _ = problem
         sprintf "%s = %s" prob (if currentAnswer.Length > 0 then currentAnswer else "??")
-    member this.Advance() =
-        if currentAnswer.Length > 0 then
-            let x, y, prob, ans = problem
-            let answerCell = cellFor mathType.Value x y
-            if ans = currentAnswer then
-                score <- score + 100
-                answerCell := Good
-                if reviewList |> Seq.exists (fun (j, k, _, _, _) -> j = x && k = y) then
-                    // now that they've got it correct, eliminate it from the review list
-                    reviewList <- reviewList |> List.filter (fun (j, k, _, _, _) -> not (j = x && k = y))
-                onCorrect()
-            else
-                score <- score - 100
-                answerCell := NeedsReview
-                reviewList <- ((x, y, prob, ans, currentAnswer) :: reviewList)
-                onIncorrect()
-            currentAnswer <- "";
     member this.HintCells =
         cells
     member this.ReviewList =
@@ -277,10 +271,10 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
         // ignore keys that don't apply to this base
         if n < (match mathBase.Value with Decimal -> 10 | Hex -> 16 | Binary -> 2) then
             currentAnswer <- currentAnswer + (if n < 10 then n.ToString() else (65 + (n - 10)) |> char |> string)
-        if this.AutoEnter then
-            let _, _, _, ans = problem
-            if ans.Length = currentAnswer.Length then
-                this.Advance()
+        //if this.AutoEnter then
+            //let _, _, _, ans = problem
+            //if ans.Length = currentAnswer.Length then
+            //    this.Advance()
     member this.Backspace() =
         if(currentAnswer.Length > 0) then
             currentAnswer <- currentAnswer.Substring(0, currentAnswer.Length - 1)
@@ -289,5 +283,5 @@ type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
         currentAnswer <- ""
         reviewList <- []
         cells <- ComputeHints size.Value mathBase.Value mathType.Value
-        problem <- nextProblem()
+        //problem <- nextProblem()
     member this.Keys = match mathBase.Value with | Decimal -> DecimalKeys | Hex -> HexKeys | Binary -> BinaryKeys
