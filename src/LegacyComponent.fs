@@ -81,6 +81,7 @@ type IntegerInput(props: IntegerInputProps) =
             ]
 
 let nothing = Unchecked.defaultof<ReactElement>
+let inline adapt x = unbox <| box x // suppress compile errors in legacy code
 
 module Sounds =
 
@@ -113,7 +114,7 @@ type MathBox() as this =
         | On | BombOnly ->
             bomb.play()
         | _ -> ()
-    let prob = MathProblems(onCorrect, onIncorrect)
+    let prob = MathProblems(adapt onCorrect, adapt onIncorrect)
     let toggleHints() =
         this.setState({ this.state with showHints = not this.state.showHints })
     let toggleOptions() =
@@ -140,7 +141,7 @@ type MathBox() as this =
             | "e" -> prob.KeyPress(14); this.forceUpdate()
             | "f" -> prob.KeyPress(15); this.forceUpdate()
             | "enter" ->
-                prob.Advance()
+                //prob.Advance()
                 this.forceUpdate()
                 ev.preventDefault()
             | "backspace" ->
@@ -231,7 +232,7 @@ type MathBox() as this =
                             prob.Keys |> List.map (function
                             | Enums.Number(n, label) -> keyPadButton label (fun () -> prob.KeyPress n)
                             | Enums.Backspace -> keyPadButton "Backspace" prob.Backspace
-                            | Enums.Enter -> keyPadButton "ENTER" prob.Advance
+                            | Enums.Enter -> keyPadButton "ENTER" (unbox null) // prob.Advance
                             | Enums.HintKey ->
                                 R.button [
                                     ClassName "numkey"
@@ -243,13 +244,14 @@ type MathBox() as this =
                     (if this.state.showHints then
                         R.div [ClassName "hintDisplay"] [
                             R.com<HintTable, HintProps, HintState> {
-                                cells = prob.HintCells
+                                cells = (unbox null) // prob.HintCells
                             } []
                             // show review list, if any
                             (if prob.ReviewList.Length > 0 then
-                                R.ul [ClassName "reviewList"] (
-                                    prob.ReviewList |> List.map (fun(x, y, prob, ans, given) -> R.li [] [unbox (sprintf "%s = %s (you guessed %s)" prob ans given)])
-                                )
+                                R.ul [ClassName "reviewList"] []
+                                //(
+                                //    prob.ReviewList |> List.map (fun(x, y, prob, ans, given) -> R.li [] [unbox (sprintf "%s = %s (you guessed %s)" prob ans given)])
+                                //)
                                 else nothing)
                         ]
                         else nothing)
