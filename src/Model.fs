@@ -128,6 +128,7 @@ type Game = {
     score: int
     currentAnswer: string
     messageToUser: string option
+    showOptions: bool
     } with
     static member Fresh(?settings) =
         let settings = match settings with | Some v -> v | None -> retrievePersisted "settings" Settings.Default
@@ -139,6 +140,7 @@ type Game = {
             score = 0
             currentAnswer = ""
             messageToUser = None
+            showOptions = false
         } |> Game.nextProblem
     static member nextProblem (g: Game) =
         // 30% of the time it will backtrack to one you got wrong before
