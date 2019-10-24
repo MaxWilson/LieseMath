@@ -1,8 +1,6 @@
 module Update
 
 open Elmish
-open Elmish.Browser.Navigation
-open Elmish.Browser.UrlParser
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import

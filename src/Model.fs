@@ -3,6 +3,8 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
+open Browser
+open Browser.WebStorage
 
 type AnswerState = | NeedsReview | Good | NoAnswer | ChromeOnly
 module Seq =
@@ -84,10 +86,10 @@ let prob percentage =
     JS.Math.random() < (float percentage)/100.
 
 let persist key value =
-    Fable.Import.Browser.localStorage.[key] <- Thoth.Json.Encode.Auto.toString(1, value)
+    localStorage.[key:string] <- Thoth.Json.Encode.Auto.toString(1, value)
 
 let retrievePersisted key defaultValue =
-    match Fable.Import.Browser.localStorage.[key:string] with
+    match localStorage.[key:string] with
     | null -> defaultValue
     | rawValue ->
         match Thoth.Json.Decode.Auto.fromString(unbox<string> rawValue) with
@@ -113,7 +115,7 @@ type Settings = {
 type PersistentSetting<'a when 'a: equality>(name: string, defaultValue: 'a) =
     let key = "Setting." + name
     let mutable storedValue =
-        let stringVal = Fable.Import.Browser.localStorage.[key]
+        let stringVal = localStorage.[key]
         if stringVal = null then
             defaultValue
         else
@@ -124,7 +126,7 @@ type PersistentSetting<'a when 'a: equality>(name: string, defaultValue: 'a) =
         with get() = storedValue
         and set(v) =
             if storedValue <> v then
-                Fable.Import.Browser.localStorage.[key] <- Thoth.Json.Encode.Auto.toString(1, v)
+                localStorage.[key] <- Thoth.Json.Encode.Auto.toString(1, v)
                 storedValue <- v
 
 type Review = { lhs: int; rhs: int; problem: string; guess: string; correctAnswer: string }

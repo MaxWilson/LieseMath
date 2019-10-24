@@ -9,9 +9,10 @@ open Model
 
 // ReactHelper defines a DSL to make it easier to build
 // React components from F#
-module R = Fable.Helpers.React
-open R.Props
-open Fable.Import.React
+open Fable.React
+open Fable
+open Fable.React.Helpers
+open Fable.React.Props
 
 type SoundState = On | Off | CheerOnly | BombOnly
 type MathBoxViewState = { showHints: bool; showOptions: bool;  }
@@ -25,21 +26,21 @@ type HintTable(props: HintProps) =
     override x.render() =
         let makeCell (cell: string * AnswerState ref) =
             let needsReview = !(snd cell)
-            R.td [ClassName (needsReview |> function | NeedsReview -> "hintcell needsreview" | Good -> "hintcell correct" | NoAnswer -> "hintcell" | ChromeOnly -> "hintcell chromeOnly")] [unbox (fst cell)]
+            td [ClassName (needsReview |> function | NeedsReview -> "hintcell needsreview" | Good -> "hintcell correct" | NoAnswer -> "hintcell" | ChromeOnly -> "hintcell chromeOnly")] [unbox (fst cell)]
 
-        let rows = props.cells |> List.map (fun rowvals -> R.tr [] (rowvals |> List.map makeCell))
-        R.table [ClassName "hinttable"] [R.tbody [] rows]
+        let rows = props.cells |> List.map (fun rowvals -> tr [] (rowvals |> List.map makeCell))
+        table [ClassName "hinttable"] [tbody [] rows]
 
 type Selector<'a  when 'a: equality>(props: SelectorProps<'a>) =
     inherit React.Component<SelectorProps<'a>, unit>(props)
     override this.render() =
         let selected = props.get()
-        R.div [] [
-            R.text [ClassName "optionLabel"] [unbox props.label]
-            R.span [ClassName "optionSpan"] (
+        div [] [
+            text [ClassName "optionLabel"] [unbox props.label]
+            span [ClassName "optionSpan"] (
                 (props.mapping
                     |> Seq.map (fun (value, label) ->
-                                    R.button
+                                    button
                                         [
                                             OnClick (fun _ -> props.set value; this.forceUpdate())
                                             ClassName (if value = selected then "option selected" else "option")
@@ -57,10 +58,10 @@ type IntegerInput(props: IntegerInputProps) =
         elif props.get() > props.max then
             props.set props.max
     override this.render() =
-        R.div [] [
-            R.text [ClassName "optionLabel"] [unbox props.label]
-            R.span [ClassName "optionSpan"]
-                [R.input [
+        div [] [
+            text [ClassName "optionLabel"] [unbox props.label]
+            span [ClassName "optionSpan"]
+                [input [
                     ClassName "option"
                     OnChange (fun e ->
                                   let v : string = (e.target?value) |> unbox
@@ -84,16 +85,19 @@ let nothing = Unchecked.defaultof<ReactElement>
 let inline adapt x = unbox <| box x // suppress compile errors in legacy code
 
 module Sounds =
-
+    let sound file =
+        let s = Browser.Dom.HTMLAudioElement.Create()
+        s.src = file
+        s
     let cheers = [
-        Audio.Create("1_person_cheering-Jett_Rifkin-1851518140.mp3")
-        Audio.Create("Cheer1.m4a")
-        Audio.Create("Cheer2.m4a")
-        Audio.Create("Cheer4.m4a")
-        Audio.Create("Cheer5.m4a")
-        Audio.Create("Cheer6.m4a")
+        sound("1_person_cheering-Jett_Rifkin-1851518140.mp3")
+        sound("Cheer1.m4a")
+        sound("Cheer2.m4a")
+        sound("Cheer4.m4a")
+        sound("Cheer5.m4a")
+        sound("Cheer6.m4a")
         ]
-    let bomb = Audio.Create("Grenade Explosion-SoundBible.com-2100581469.mp3")
+    let bomb = sound("Grenade Explosion-SoundBible.com-2100581469.mp3")
     let SoundSetting = PersistentSetting("Sound", On)
 open Sounds
 
@@ -121,7 +125,7 @@ type MathBox() as this =
         this.setState({ this.state with showOptions = not this.state.showOptions })
     do this.state <- { showOptions = false; showHints = false; }
     // onKeyDown is written partly dynamically because I haven't figured out the right JS types to do it statically
-    let onKeyDown (ev : Event) =
+    let onKeyDown (ev : Browser.Types.Event) =
         let key : string = unbox ev?key // unbox to type-cast
         if this.state.showOptions then
             match key.ToLower() with
@@ -158,83 +162,83 @@ type MathBox() as this =
                     ev.preventDefault()
             | _ -> ()
     member this.componentDidMount() =
-        Browser.document.addEventListener("keydown", EventListenerOrEventListenerObject.Case1(onKeyDown), true)
+        Browser.Dom.document.addEventListener("keydown", onKeyDown, true)
     override this.render () =
         let onClickDo handler =
             OnClick (fun _ ->
                         handler()
                         this.forceUpdate())
         let keyPadButton label onClick =
-            R.button [
+            button [
                 onClickDo onClick
                 ClassName "numkey"
                 ] [unbox label]
         // there's a shell which holds both the hint box and the interaction keypad
-        R.div [
+        div [
             ClassName "shell columnDisplay"
             ] (
             if this.state.showOptions then [
-                R.div [ClassName "settingsBar"] [
-                    R.button [ClassName "optionsButton"; OnClick (fun _ -> toggleOptions())] [unbox "Options"]
+                div [ClassName "settingsBar"] [
+                    button [ClassName "optionsButton"; OnClick (fun _ -> toggleOptions())] [unbox "Options"]
                     ]
-                R.div [ClassName "optionsDisplay"] [
-                    R.com<Selector<_>, _, _> {
+                div [ClassName "optionsDisplay"] [
+                    com<Selector<_>, _, _> {
                             label = "Sound"
                             get = (fun() -> Sounds.SoundSetting.Value)
                             set = (fun v -> Sounds.SoundSetting.Value <- v; this.forceUpdate())
                             mapping = [On, "On"; Off, "Off"; BombOnly, "Bomb"; CheerOnly, "Cheers"; ]
                         } []
-                    R.com<Selector<_>, _, _> {
+                    com<Selector<_>, _, _> {
                             label = "Auto-ENTER"
                             get = (fun() -> prob.AutoEnter)
                             set = (fun v -> prob.AutoEnter <- v; this.forceUpdate())
                             mapping = [true, "On"; false, "Off"]
                         } []
-                    R.com<Selector<_>, _, _> {
+                    com<Selector<_>, _, _> {
                             label = "Progressive difficulty"
                             get = (fun() -> prob.ProgressiveDifficulty)
                             set = (fun v -> prob.ProgressiveDifficulty <- v; this.forceUpdate())
                             mapping = [true, "On"; false, "Off"]
                         } []
-                    R.com<Selector<_>, _, _> {
+                    com<Selector<_>, _, _> {
                             label = "Base"
                             get = (fun() -> prob.MathBase)
                             set = (fun v -> prob.MathBase <- v; prob.Reset(); this.forceUpdate())
                             mapping = [Enums.Binary, "Binary"; Enums.Decimal, "Decimal"; Enums.Hex, "Hexadecimal"]
                         } []
-                    R.com<Selector<_>, _, _> {
+                    com<Selector<_>, _, _> {
                             label = "Operation"
                             get = (fun() -> prob.MathType)
                             set = (fun v -> prob.MathType <- v; prob.Reset(); this.forceUpdate())
                             mapping = Enums.mathTypeMappings
                         } []
-                    R.com<IntegerInput, _, _> {
+                    com<IntegerInput, _, _> {
                             label = "MaxNum"
                             min = 1
                             max = 2 * match prob.MathBase with | Enums.Hex -> 16 | Enums.Decimal -> 10 | Enums.Binary -> 2
                             get = (fun() -> prob.MaxNum)
                             set = (fun v -> prob.MaxNum <- v; prob.Reset(); this.forceUpdate())
                         } []
-                    R.button [ClassName "optionDoneButton"; OnClick (fun _ -> toggleOptions())][unbox "OK"]
+                    button [ClassName "optionDoneButton"; OnClick (fun _ -> toggleOptions())][unbox "OK"]
                     ]
                 ]
             else [
-                R.div [ClassName "settingsBar"] [
-                    R.button [ClassName "resetButton"; onClickDo prob.Reset] [unbox "Reset"]
-                    R.button [ClassName "optionsButton"; OnClick (fun _ -> toggleOptions())] [unbox "Options"]
+                div [ClassName "settingsBar"] [
+                    button [ClassName "resetButton"; onClickDo prob.Reset] [unbox "Reset"]
+                    button [ClassName "optionsButton"; OnClick (fun _ -> toggleOptions())] [unbox "Options"]
                     ]
-                R.h3 [ClassName "scoreDisplay"] [unbox ("Score: " + prob.Score.ToString())]
-                R.div [ClassName "shell rowDisplay"] [
-                    R.div [ClassName "keypad"] [
-                        // Use ReactHelper.com to build a React Component from a type
-                        R.h2 [ClassName "numDisplay"] [unbox prob.CurrentProblem]
-                        R.div [ClassName "keyList"] (
+                h3 [ClassName "scoreDisplay"] [unbox ("Score: " + prob.Score.ToString())]
+                div [ClassName "shell rowDisplay"] [
+                    div [ClassName "keypad"] [
+                        // Use ReactHelpecom to build a React Component from a type
+                        h2 [ClassName "numDisplay"] [unbox prob.CurrentProblem]
+                        div [ClassName "keyList"] (
                             prob.Keys |> List.map (function
                             | Enums.Number(n, label) -> keyPadButton label (fun () -> prob.KeyPress n)
                             | Enums.Backspace -> keyPadButton "Backspace" prob.Backspace
                             | Enums.Enter -> keyPadButton "ENTER" (unbox null) // prob.Advance
                             | Enums.HintKey ->
-                                R.button [
+                                button [
                                     ClassName "numkey"
                                     OnClick (fun _ -> toggleHints())
                                 ] [unbox (if this.state.showHints then "Hide hints" else "Show hints")]
@@ -242,15 +246,15 @@ type MathBox() as this =
                         )
                     ]
                     (if this.state.showHints then
-                        R.div [ClassName "hintDisplay"] [
-                            R.com<HintTable, HintProps, HintState> {
+                        div [ClassName "hintDisplay"] [
+                            com<HintTable, HintProps, HintState> {
                                 cells = (unbox null) // prob.HintCells
                             } []
                             // show review list, if any
                             (if prob.ReviewList.Length > 0 then
-                                R.ul [ClassName "reviewList"] []
+                                ul [ClassName "reviewList"] []
                                 //(
-                                //    prob.ReviewList |> List.map (fun(x, y, prob, ans, given) -> R.li [] [unbox (sprintf "%s = %s (you guessed %s)" prob ans given)])
+                                //    prob.ReviewList |> List.map (fun(x, y, prob, ans, given) -> li [] [unbox (sprintf "%s = %s (you guessed %s)" prob ans given)])
                                 //)
                                 else nothing)
                         ]

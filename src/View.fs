@@ -1,16 +1,15 @@
 module View
 
 open Elmish
-open Elmish.Browser.Navigation
-open Elmish.Browser.UrlParser
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 
-open Fable.Helpers.React
-open Fable.Helpers.React.Props
 open Model
 open Model.Enums
+open Fable
+open Fable.React
+open Fable.React.Props
 
 type Message = NoOp
 type Message2 =
