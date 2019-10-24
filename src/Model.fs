@@ -3,7 +3,6 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
-open Browser
 open Browser.WebStorage
 
 type AnswerState = | NeedsReview | Good | NoAnswer | ChromeOnly
@@ -85,10 +84,10 @@ let FormatProblem mathType mathBase lhs rhs =
 let prob percentage =
     JS.Math.random() < (float percentage)/100.
 
-let persist key value =
+let inline persist key value =
     localStorage.[key:string] <- Thoth.Json.Encode.Auto.toString(1, value)
 
-let retrievePersisted key defaultValue =
+let inline retrievePersisted key defaultValue =
     match localStorage.[key:string] with
     | null -> defaultValue
     | rawValue ->
@@ -110,24 +109,6 @@ type Settings = {
         autoEnter = false
         progressiveDifficulty = true
     }
-
-/// PersistentSetting is a setting which is cached between sessions in local storage
-type PersistentSetting<'a when 'a: equality>(name: string, defaultValue: 'a) =
-    let key = "Setting." + name
-    let mutable storedValue =
-        let stringVal = localStorage.[key]
-        if stringVal = null then
-            defaultValue
-        else
-            match Thoth.Json.Decode.Auto.fromString<'a>(unbox<string> stringVal) with
-            | Ok v -> v
-            | Error e -> failwithf "Could not decode %A" stringVal
-    member this.Value
-        with get() = storedValue
-        and set(v) =
-            if storedValue <> v then
-                localStorage.[key] <- Thoth.Json.Encode.Auto.toString(1, v)
-                storedValue <- v
 
 type Review = { lhs: int; rhs: int; problem: string; guess: string; correctAnswer: string }
 
@@ -232,61 +213,78 @@ type Game = {
             this
 
 
-type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
-    let size = PersistentSetting("size", 12);
-    let mathBase = PersistentSetting("mathBase", Enums.Decimal)
-    let mathType = PersistentSetting("mathType", Enums.Times)
-    let autoEnter = PersistentSetting("autoEnter", false)
-    let progressiveDifficulty = PersistentSetting("progressiveDifficulty", false)
-    let mutable reviewList = []
-    let mutable cells : (string * AnswerState) list list = ComputeHints size.Value mathBase.Value mathType.Value
-    let cellFor mathType x y =
-        match mathType with
-            | Enums.Plus | Enums.Minus -> cells.[x].[y] |> snd
-            | Enums.Times | Enums.Divide -> cells.[x-1].[y-1] |> snd
-    let mutable problem = Unchecked.defaultof<_>
-    let mutable score = 0
-    let mutable currentAnswer = "";
-    member this.MathBase
-        with get() = mathBase.Value
-        and set(v) =
-            mathBase.Value <- v
-    member this.MaxNum
-        with get() = size.Value
-        and set(v) =
-            size.Value <- v
-    member this.AutoEnter
-        with get() = autoEnter.Value
-        and set(v) = autoEnter.Value <- v
-    member this.ProgressiveDifficulty
-        with get() = progressiveDifficulty.Value
-        and set(v) = progressiveDifficulty.Value <- v
-    member this.MathType
-        with get() = mathType.Value
-        and set(v) = mathType.Value <- v
-    member this.Score = score
-    member this.CurrentProblem =
-        let _, _, prob, _ = problem
-        sprintf "%s = %s" prob (if currentAnswer.Length > 0 then currentAnswer else "??")
-    member this.HintCells =
-        cells
-    member this.ReviewList =
-        reviewList
-    member this.KeyPress (n: int) =
-        // ignore keys that don't apply to this base
-        if n < (match mathBase.Value with Decimal -> 10 | Hex -> 16 | Binary -> 2) then
-            currentAnswer <- currentAnswer + (if n < 10 then n.ToString() else (65 + (n - 10)) |> char |> string)
-        //if this.AutoEnter then
-            //let _, _, _, ans = problem
-            //if ans.Length = currentAnswer.Length then
-            //    this.Advance()
-    member this.Backspace() =
-        if(currentAnswer.Length > 0) then
-            currentAnswer <- currentAnswer.Substring(0, currentAnswer.Length - 1)
-    member this.Reset() =
-        score <- 0
-        currentAnswer <- ""
-        reviewList <- []
-        cells <- ComputeHints size.Value mathBase.Value mathType.Value
-        //problem <- nextProblem()
-    member this.Keys = match mathBase.Value with | Decimal -> DecimalKeys | Hex -> HexKeys | Binary -> BinaryKeys
+///// PersistentSetting is a setting which is cached between sessions in local storage
+//type PersistentSetting<'a when 'a: equality>(name: string, defaultValue: 'a) =
+//    let key = "Setting." + name
+//    let mutable storedValue =
+//        let stringVal = localStorage.[key]
+//        if stringVal = null then
+//            defaultValue
+//        else
+//            match Thoth.Json.Decode.Auto.fromString<'a>(unbox<string> stringVal) with
+//            | Ok v -> v
+//            | Error e -> failwithf "Could not decode %A" stringVal
+//    member this.Value
+//        with get() = storedValue
+//        and set(v) =
+//            if storedValue <> v then
+//                localStorage.[key] <- Thoth.Json.Encode.Auto.toString(1, v)
+//                storedValue <- v
+//type MathProblems(onCorrect: _ -> _, onIncorrect: _ -> _) =
+//    let size = PersistentSetting("size", 12);
+//    let mathBase = PersistentSetting("mathBase", Enums.Decimal)
+//    let mathType = PersistentSetting("mathType", Enums.Times)
+//    let autoEnter = PersistentSetting("autoEnter", false)
+//    let progressiveDifficulty = PersistentSetting("progressiveDifficulty", false)
+//    let mutable reviewList = []
+//    let mutable cells : (string * AnswerState) list list = ComputeHints size.Value mathBase.Value mathType.Value
+//    let cellFor mathType x y =
+//        match mathType with
+//            | Enums.Plus | Enums.Minus -> cells.[x].[y] |> snd
+//            | Enums.Times | Enums.Divide -> cells.[x-1].[y-1] |> snd
+//    let mutable problem = Unchecked.defaultof<_>
+//    let mutable score = 0
+//    let mutable currentAnswer = "";
+//    member this.MathBase
+//        with get() = mathBase.Value
+//        and set(v) =
+//            mathBase.Value <- v
+//    member this.MaxNum
+//        with get() = size.Value
+//        and set(v) =
+//            size.Value <- v
+//    member this.AutoEnter
+//        with get() = autoEnter.Value
+//        and set(v) = autoEnter.Value <- v
+//    member this.ProgressiveDifficulty
+//        with get() = progressiveDifficulty.Value
+//        and set(v) = progressiveDifficulty.Value <- v
+//    member this.MathType
+//        with get() = mathType.Value
+//        and set(v) = mathType.Value <- v
+//    member this.Score = score
+//    member this.CurrentProblem =
+//        let _, _, prob, _ = problem
+//        sprintf "%s = %s" prob (if currentAnswer.Length > 0 then currentAnswer else "??")
+//    member this.HintCells =
+//        cells
+//    member this.ReviewList =
+//        reviewList
+//    member this.KeyPress (n: int) =
+//        // ignore keys that don't apply to this base
+//        if n < (match mathBase.Value with Decimal -> 10 | Hex -> 16 | Binary -> 2) then
+//            currentAnswer <- currentAnswer + (if n < 10 then n.ToString() else (65 + (n - 10)) |> char |> string)
+//        //if this.AutoEnter then
+//            //let _, _, _, ans = problem
+//            //if ans.Length = currentAnswer.Length then
+//            //    this.Advance()
+//    member this.Backspace() =
+//        if(currentAnswer.Length > 0) then
+//            currentAnswer <- currentAnswer.Substring(0, currentAnswer.Length - 1)
+//    member this.Reset() =
+//        score <- 0
+//        currentAnswer <- ""
+//        reviewList <- []
+//        cells <- ComputeHints size.Value mathBase.Value mathType.Value
+//        //problem <- nextProblem()
+//    member this.Keys = match mathBase.Value with | Decimal -> DecimalKeys | Hex -> HexKeys | Binary -> BinaryKeys

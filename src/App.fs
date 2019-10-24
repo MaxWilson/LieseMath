@@ -13,5 +13,5 @@ Program.mkProgram init update view
 #if DEBUG
 |> Program.withDebugger
 #endif
-|> Program.withReact "main"
+|> Program.withReactBatched "main"
 |> Program.run
