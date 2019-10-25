@@ -9,6 +9,7 @@ type AnswerState = | NeedsReview | Good | NoAnswer | ChromeOnly
 module Seq =
     let every pred = not << Seq.exists pred
 
+let delay1 f x _ = f x
 module Enums =
     type MathKey = | Number of int * string | Enter | Backspace | HintKey
     type MathType = | Plus | Minus | Times | Divide
@@ -95,12 +96,14 @@ let inline retrievePersisted key defaultValue =
         | Ok v -> v
         | Error _ -> defaultValue
 
+type SoundState = On | Off | CheerOnly | BombOnly
 type Settings = {
     size: int
     mathBase: Enums.MathBase
     mathType: Enums.MathType
     autoEnter: bool
     progressiveDifficulty: bool
+    sound: SoundState
     } with
     static member Default = {
         size = 12
@@ -108,6 +111,7 @@ type Settings = {
         mathType = Enums.Times
         autoEnter = false
         progressiveDifficulty = true
+        sound = On
     }
 
 type Review = { lhs: int; rhs: int; problem: string; guess: string; correctAnswer: string }
@@ -129,6 +133,7 @@ type Game = {
     currentAnswer: string
     messageToUser: string option
     showOptions: bool
+    showHints: bool
     } with
     static member Fresh(?settings) =
         let settings = match settings with | Some v -> v | None -> retrievePersisted "settings" Settings.Default
@@ -141,6 +146,7 @@ type Game = {
             currentAnswer = ""
             messageToUser = None
             showOptions = false
+            showHints = false
         } |> Game.nextProblem
     static member nextProblem (g: Game) =
         // 30% of the time it will backtrack to one you got wrong before

@@ -12,6 +12,13 @@ open Fable.React
 open Fable.React.Props
 
 type Message0 = NoOp
+type SettingChange =
+    | Sound of SoundState
+    | AutoEnter of bool
+    | ProgressiveDifficulty of bool
+    | MathBase of MathBase
+    | Operation of MathType
+    | Maximum of int
 type Message =
     | Reset
     | ToggleOptions
@@ -19,8 +26,26 @@ type Message =
     | DataEntry of string
     | ENTER
     | Backspace
+    | Setting of SettingChange
 let onClick f x = OnClick <| fun _ -> f x
 let btn label attrs = button attrs [str label]
+
+let viewOptions (settings:Settings) dispatch =
+    let setting label currentValue msg options =
+        div[][
+            yield text[][str label]
+            for (label, value) in options ->
+                button[ClassName (if value = currentValue then "option selected" else "option");
+                        OnClick (delay1 dispatch (Setting <| msg value))][str label]
+            ]
+    div [ClassName "optionsDisplay"] [
+        setting "Sound" settings.sound Sound ["On", On; "Off", Off; "Bomb", BombOnly; "Cheers", CheerOnly]
+        setting "Auto-ENTER" settings.autoEnter AutoEnter ["On", true; "Off", false]
+        setting "Progressive difficulty" settings.progressiveDifficulty AutoEnter ["On", true; "Off", false]
+        setting "Base" settings.mathBase MathBase ["Binary", Binary; "Decimal", Decimal; "Hexadecimal", Hex]
+        setting "Operation" settings.mathType Operation ["+", Plus; "−", Minus; "×", Times; "÷", Divide]
+        button [ClassName "optionDoneButton"; OnClick (delay1 dispatch ToggleOptions)][unbox "OK"]
+        ]
 
 let view (g:Game) dispatch =
     for row in g.cells do
@@ -33,7 +58,7 @@ let view (g:Game) dispatch =
             ]
         ::
         if g.showOptions then
-            [div[][str "Options"]]
+            [viewOptions g.settings dispatch]
         else [
             h3[ClassName "scoreDisplay"][str <| sprintf "Score: %d" g.score]
             div[ClassName "numDisplay"][str (defaultArg g.messageToUser g.problem.question)]
@@ -113,3 +138,4 @@ let view0 (model:Game) dispatch =
       ]
     ]
   ]
+
