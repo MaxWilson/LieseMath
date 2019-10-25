@@ -11,7 +11,6 @@ open Fable
 open Fable.React
 open Fable.React.Props
 
-type Message0 = NoOp
 type SettingChange =
     | Sound of SoundState
     | AutoEnter of bool
@@ -92,7 +91,7 @@ let view (g:Game) dispatch =
                 ]
             ul [ClassName "reviewList"] [
                 for r in g.reviewList do
-                    li [] [str <| sprintf "%s = %s (you guessed %s)" r.problem r.correctAnswer r.guess]
+                    yield li [] [str <| sprintf "%s = %s (you guessed %s)" r.problem r.correctAnswer r.guess]
                 ]
             ]
     for row in g.cells do
@@ -112,16 +111,19 @@ let view (g:Game) dispatch =
             div[ClassName "keyList"][
                 let maybeDispatch = if g.messageToUser.IsSome then ignore else dispatch
                 for k in keysOf g.settings.mathBase do
-                    match k with
-                    | Number(num, label) -> btn label [onClick maybeDispatch (DataEntry label)]
-                    | Enter -> btn "ENTER" [onClick maybeDispatch ENTER]
-                    | Enums.Backspace -> btn "Backspace" [onClick maybeDispatch Backspace]
-                    | HintKey -> btn "Show hints" [onClick maybeDispatch ToggleHints]
+                    yield
+                        match k with
+                        | Number(num, label) -> btn label [onClick maybeDispatch (DataEntry label)]
+                        | Enter -> btn "ENTER" [onClick maybeDispatch ENTER]
+                        | Enums.Backspace -> btn "Backspace" [onClick maybeDispatch Backspace]
+                        | HintKey -> btn "Show hints" [onClick maybeDispatch ToggleHints]
                 ]
             hintTable
             ]
         )
 
+#if LEGACY
+type Message0 = NoOp
 let view0 (model:Game) dispatch =
   div [ClassName "app shell columnDisplay"] [
     div [ClassName "ui"] [
@@ -175,3 +177,4 @@ let view0 (model:Game) dispatch =
     ]
   ]
 
+#endif
