@@ -7,7 +7,7 @@ open Browser.WebStorage
 
 type AnswerState = | NeedsReview | Good | NoAnswer | ChromeOnly
 module Seq =
-    let every pred = not << Seq.exists pred
+    let every pred = not << Seq.exists (not << pred)
 
 let delay1 f x _ = f x
 module Enums =
@@ -22,6 +22,23 @@ module Enums =
     let keysOf = function Binary -> BinaryKeys | Decimal -> DecimalKeys | Hex -> HexKeys
 
 open Enums
+type SoundState = On | Off | CheerOnly | BombOnly
+type Settings = {
+    size: int
+    mathBase: Enums.MathBase
+    mathType: Enums.MathType
+    autoEnter: bool
+    progressiveDifficulty: bool
+    sound: SoundState
+    } with
+    static member Default = {
+        size = 12
+        mathBase = Decimal
+        mathType = Enums.Times
+        autoEnter = false
+        progressiveDifficulty = true
+        sound = On
+    }
 
 let FormatByBase mathBase n =
     match mathBase with
@@ -48,7 +65,8 @@ let FormatByBase mathBase n =
                 hexDigit n
         hexPrint n
 
-let ComputeHints size mathBase mathType =
+let ComputeHints settings =
+    let size, mathBase, mathType = settings.size, settings.mathBase, settings.mathType
     match mathType with
     | Enums.Plus | Enums.Minus ->
         [for x in 0..size ->
@@ -96,24 +114,6 @@ let inline retrievePersisted key defaultValue =
         | Ok v -> v
         | Error _ -> defaultValue
 
-type SoundState = On | Off | CheerOnly | BombOnly
-type Settings = {
-    size: int
-    mathBase: Enums.MathBase
-    mathType: Enums.MathType
-    autoEnter: bool
-    progressiveDifficulty: bool
-    sound: SoundState
-    } with
-    static member Default = {
-        size = 12
-        mathBase = Decimal
-        mathType = Enums.Times
-        autoEnter = false
-        progressiveDifficulty = true
-        sound = On
-    }
-
 type Review = { lhs: int; rhs: int; problem: string; guess: string; correctAnswer: string }
 
 let coordsFor mathType x y =
@@ -140,7 +140,7 @@ type Game = {
         {
             settings = settings
             reviewList = []
-            cells = ComputeHints settings.size settings.mathBase settings.mathType
+            cells = ComputeHints settings
             problem = Unchecked.defaultof<_>
             score = 0
             currentAnswer = ""
@@ -165,7 +165,7 @@ type Game = {
                     if allCorrect then
                         let settings = { settings with size = settings.size + 1 }
                         let newHints =
-                            ComputeHints settings.size settings.mathBase settings.mathType
+                            ComputeHints settings
                             |> List.mapi(fun i row ->
                                 row |> List.mapi(fun j cell ->
                                         if i < g.cells.Length && j < g.cells.[i].Length then
