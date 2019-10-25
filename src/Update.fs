@@ -11,7 +11,12 @@ open View
 let init _ = Game.Fresh(), Cmd.none
 let update msg model =
     match msg with
-    | ToggleOptions -> { model with showOptions = not model.showOptions }, Cmd.none
+    | ToggleOptions ->
+        let showOptions = not model.showOptions
+        if not showOptions then // done button was hit, so persist settings
+            let encode = Thoth.Json.Encode.Auto.toString(1, model.settings)
+            Browser.WebStorage.localStorage.["settings"] <- encode
+        { model with showOptions = showOptions }, Cmd.none
     | Reset -> Game.Fresh(), Cmd.none
     | Setting msg ->
         let settings = model.settings
@@ -25,7 +30,7 @@ let update msg model =
             | SettingChange.Maximum v -> { settings with size = v }
         match msg with
         | Operation _ | Maximum _ | MathBase _ ->
-            { model with settings = settings'; cells = Model.ComputeHints settings'; reviewList = [] }, Cmd.none
+            { model with settings = settings'; cells = Model.ComputeHints settings'; reviewList = [] } |> Game.nextProblem, Cmd.none
         | _ ->
             { model with settings = settings'; }, Cmd.none
     | _ -> model, Cmd.none
