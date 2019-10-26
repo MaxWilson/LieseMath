@@ -1,9 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="..\sass\main.sass" Link="main.sass" />
     <Compile Include="Common.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="View.fs" />
@@ -11,6 +12,7 @@
     <Compile Include="LegacyComponent.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="Fable.Core" Version="3.1.2" />
     <PackageReference Include="Fable.Elmish" Version="3.0.6" />
