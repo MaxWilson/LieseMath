@@ -24,9 +24,7 @@ type Message =
     | Reset
     | ToggleOptions
     | ToggleHints
-    | DataEntry of string
-    | ENTER
-    | Backspace
+    | AnswerKey of MathKey
     | Setting of SettingChange
 let onClick f x = OnClick <| fun _ -> f x
 let btn label attrs = button attrs [str label]
@@ -108,19 +106,19 @@ let view (g:Game) dispatch =
         if g.showOptions then
             [viewOptions g.settings dispatch; hintTable]
         else [
-            h3[ClassName "scoreDisplay"][str <| sprintf "Score: %d" g.score]
-            div[ClassName "numDisplay"][str (defaultArg g.messageToUser (sprintf "%s = %s" g.problem.question (if g.currentAnswer = "" then String.replicate g.problem.answer.Length "?" else g.currentAnswer)))]
-            div[ClassName "keyList"][
+            yield h3[ClassName "scoreDisplay"][str <| sprintf "Score: %d" g.score]
+            yield div[ClassName "numDisplay"][str (defaultArg g.messageToUser (sprintf "%s = %s" g.problem.question (if g.currentAnswer = "" then String.replicate g.problem.answer.Length "?" else g.currentAnswer)))]
+            yield div[ClassName "keyList"][
                 let maybeDispatch = if g.messageToUser.IsSome then ignore else dispatch
                 for k in keysOf g.settings.mathBase do
                     yield
                         match k with
-                        | Number(num, label) -> btn label [onClick maybeDispatch (DataEntry label)]
-                        | Enter -> btn "ENTER" [onClick maybeDispatch ENTER]
-                        | Enums.Backspace -> btn "Backspace" [onClick maybeDispatch Backspace]
+                        | Number(label) -> btn label [onClick maybeDispatch (AnswerKey k)]
+                        | Enter -> btn "ENTER" [onClick maybeDispatch (AnswerKey k)]
+                        | Enums.Backspace -> btn "Backspace" [onClick maybeDispatch (AnswerKey k)]
                         | HintKey -> btn "Show hints" [onClick maybeDispatch ToggleHints]
                 ]
-            hintTable
+            if g.showHints then yield hintTable
             ]
         )
 

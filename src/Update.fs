@@ -6,6 +6,7 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Common
 open Model
+open Model.Enums
 open View
 
 let init _ = Game.Fresh(), Cmd.none
@@ -32,6 +33,8 @@ let update msg model =
             let encode = Thoth.Json.Encode.Auto.toString(1, model.settings)
             Browser.WebStorage.localStorage.["settings"] <- encode
         { model with showOptions = showOptions }, Cmd.none
+    | ToggleHints ->
+        { model with showHints = not model.showHints }, Cmd.none
     | Reset -> Game.Fresh(), Cmd.none
     | Setting msg ->
         let settings = model.settings
@@ -48,11 +51,27 @@ let update msg model =
             { model with settings = settings'; cells = Model.ComputeHints settings'; reviewList = [] } |> Game.nextProblem, Cmd.none
         | _ ->
             { model with settings = settings'; }, Cmd.none
-    | DataEntry key ->
-        let model = { model with currentAnswer = model.currentAnswer + key }
-        model, if model.settings.autoEnter && model.currentAnswer.Length = model.problem.answer.Length then Cmd.ofMsg ENTER else Cmd.none
-    | Backspace ->
-        { model with currentAnswer = model.currentAnswer.Substring(0, max 0 <| model.currentAnswer.Length - 1) }, Cmd.none
-    | ENTER ->
-        Game.TryAdvance model (chooseRandom cheers).play bomb.play, Cmd.none
-    | _ -> model, Cmd.none
+    | AnswerKey k ->
+        if model.showOptions && k = Enter then
+            model, Cmd.ofMsg ToggleOptions
+        elif model.showOptions || not (Model.Enums.keysOf model.settings.mathBase |> Array.exists ((=) k)) then
+            model, Cmd.none
+        else
+            match k with
+            | Number key ->
+                let model = { model with currentAnswer = model.currentAnswer + key }
+                model, if model.settings.autoEnter && model.currentAnswer.Length = model.problem.answer.Length then Cmd.ofMsg (AnswerKey Enter) else Cmd.none
+            | Backspace ->
+                { model with currentAnswer = model.currentAnswer.Substring(0, max 0 <| model.currentAnswer.Length - 1) }, Cmd.none
+            | Enter ->
+                let onCorrect =
+                    match model.settings.sound with
+                    | On | CheerOnly -> (chooseRandom cheers).play
+                    | _ -> ignore
+                let onIncorrect =
+                    match model.settings.sound with
+                    | On | BombOnly -> bomb.play
+                    | _ -> ignore
+                Game.TryAdvance model onCorrect onIncorrect, Cmd.none
+            | HintKey ->
+                model, Cmd.ofMsg ToggleHints

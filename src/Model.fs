@@ -11,13 +11,13 @@ module Seq =
     let every pred = not << Seq.exists (not << pred)
 
 module Enums =
-    type MathKey = | Number of int * string | Enter | Backspace | HintKey
+    type MathKey = | Number of string | Enter | Backspace | HintKey
     type MathType = | Plus | Minus | Times | Divide
     type MathBase = Binary | Decimal | Hex
-    let numberKey x = Number(x, x.ToString())
-    let DecimalKeys = [1..9] |> List.map numberKey|> (fun x -> List.append x [Backspace; numberKey 0; Enter; HintKey])
-    let HexKeys = [1..9] |> List.map numberKey |> (fun x -> List.append x [Number(10, "A"); Number(11, "B"); Number(12, "C"); Number(13, "D"); Number(14, "E"); Number(15, "F"); Backspace; numberKey 0; Enter; HintKey])
-    let BinaryKeys = [Backspace; numberKey 1; numberKey 0; Enter; HintKey]
+    let numberKey x = Number(x.ToString())
+    let DecimalKeys = [1..9] |> List.map numberKey|> (fun x -> List.append x [Backspace; numberKey 0; Enter; HintKey]) |> Array.ofList
+    let HexKeys = [1..9] |> List.map numberKey |> (fun x -> List.append x [Number "A"; Number "B"; Number "C"; Number "D"; Number "E"; Number "F"; Backspace; numberKey 0; Enter; HintKey]) |> Array.ofList
+    let BinaryKeys = [|Backspace; numberKey 1; numberKey 0; Enter; HintKey|]
     let mathTypeMappings = [Plus, "+"; Minus, "−"; Times, "×"; Divide, "÷"]
     let keysOf = function Binary -> BinaryKeys | Decimal -> DecimalKeys | Hex -> HexKeys
 
