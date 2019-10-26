@@ -44,7 +44,7 @@ let viewOptions (settings:Settings) dispatch =
     let maxSlider =
         let MAXVAL = 25
         let btnStyle = ClassName "optionButton"
-        div[] [
+        div[ClassName "options"] [
             text[ClassName "optionLabel"][str "Up to"]
             span[ClassName "optionSpan"][
                 button[btnStyle; OnClick (delay1 dispatch (Setting (Maximum <| max 1 (min MAXVAL <| settings.size - 1))))][str "-"]
@@ -93,7 +93,7 @@ let view (g:Game) dispatch =
                     yield li [] [str <| sprintf "%s = %s (you guessed %s)" r.problem r.correctAnswer r.guess]
                 ]
             ]
-    div [ClassName "ui"](
+    div [ClassName <| if g.showHints || g.showOptions then "ui withHints" else "ui"](
         div[ClassName "header"][
             btn "Reset" [onClick dispatch Reset]
             btn "Options" [onClick dispatch ToggleOptions]
