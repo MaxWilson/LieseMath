@@ -93,9 +93,6 @@ let view (g:Game) dispatch =
                     yield li [] [str <| sprintf "%s = %s (you guessed %s)" r.problem r.correctAnswer r.guess]
                 ]
             ]
-    for row in g.cells do
-        for (v, status) in row do
-            Browser.Dom.console.log(v)
     div [ClassName "ui"](
         div[ClassName "header"][
             btn "Reset" [onClick dispatch Reset]

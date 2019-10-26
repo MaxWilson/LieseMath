@@ -12,17 +12,27 @@ open View
 let init _ = Game.Fresh(), Cmd.none
 
 module Sounds =
+    open Browser.Types
     [<Emit("new Audio($0)")>]
-    let sound file : Browser.Types.HTMLAudioElement = jsNative
-    let cheers = [|
-        sound("1_person_cheering-Jett_Rifkin-1851518140.mp3")
-        sound("Cheer1.m4a")
-        sound("Cheer2.m4a")
-        sound("Cheer4.m4a")
-        sound("Cheer5.m4a")
-        sound("Cheer6.m4a")
-        |]
-    let bomb = sound("Grenade Explosion-SoundBible.com-2100581469.mp3")
+    let sound file : HTMLAudioElement = jsNative
+    let private cheers = [|
+                    sound("1_person_cheering-Jett_Rifkin-1851518140.mp3")
+                    sound("Cheer1.m4a")
+                    sound("Cheer2.m4a")
+                    sound("Cheer4.m4a")
+                    sound("Cheer5.m4a")
+                    sound("Cheer6.m4a")
+                    |]
+    let play (sound: HTMLAudioElement) =
+        if sound.ended then sound.play()
+        else
+            sound.currentTime <- 0.
+            sound.play()
+    let cheer() =
+        chooseRandom cheers |> play
+    let bomb =
+        let s = sound("Grenade Explosion-SoundBible.com-2100581469.mp3")
+        delay1 play s
 open Sounds
 
 let update msg model =
@@ -34,21 +44,6 @@ let update msg model =
             Browser.WebStorage.localStorage.["settings"] <- encode
         { model with showOptions = showOptions }, Cmd.none
     | Reset -> Game.Fresh(), Cmd.none
-    | Setting msg ->
-        let settings = model.settings
-        let settings' =
-            match msg with
-            | SettingChange.Sound v -> { settings with sound = v }
-            | SettingChange.AutoEnter v -> { settings with autoEnter = v }
-            | SettingChange.ProgressiveDifficulty v -> { settings with progressiveDifficulty = v }
-            | SettingChange.MathBase v -> { settings with mathBase = v }
-            | SettingChange.Operation v -> { settings with mathType = v }
-            | SettingChange.Maximum v -> { settings with size = v }
-        match msg with
-        | Operation _ | Maximum _ | MathBase _ ->
-            { model with settings = settings'; cells = Model.ComputeHints settings'; reviewList = [] } |> Game.nextProblem, Cmd.none
-        | _ ->
-            { model with settings = settings'; }, Cmd.none
     | AnswerKey k ->
         if model.showOptions && k = Enter then
             model, Cmd.ofMsg ToggleOptions
@@ -64,12 +59,27 @@ let update msg model =
             | Enter ->
                 let onCorrect =
                     match model.settings.sound with
-                    | On | CheerOnly -> (chooseRandom cheers).play
+                    | On | CheerOnly -> cheer
                     | _ -> ignore
                 let onIncorrect =
                     match model.settings.sound with
-                    | On | BombOnly -> bomb.play
+                    | On | BombOnly -> bomb
                     | _ -> ignore
                 Game.TryAdvance model onCorrect onIncorrect, Cmd.none
             | HintKey ->
                 { model with showHints = not model.showHints }, Cmd.none
+    | Setting msg ->
+        let settings = model.settings
+        let settings' =
+            match msg with
+            | SettingChange.Sound v -> { settings with sound = v }
+            | SettingChange.AutoEnter v -> { settings with autoEnter = v }
+            | SettingChange.ProgressiveDifficulty v -> { settings with progressiveDifficulty = v }
+            | SettingChange.MathBase v -> { settings with mathBase = v }
+            | SettingChange.Operation v -> { settings with mathType = v }
+            | SettingChange.Maximum v -> { settings with size = v }
+        match msg with
+        | Operation _ | Maximum _ | MathBase _ ->
+            { model with settings = settings'; cells = Model.ComputeHints settings'; reviewList = [] } |> Game.nextProblem, Cmd.none
+        | _ ->
+            { model with settings = settings'; }, Cmd.none
