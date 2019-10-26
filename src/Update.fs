@@ -43,7 +43,7 @@ let update msg model =
             let encode = Thoth.Json.Encode.Auto.toString(1, model.settings)
             Browser.WebStorage.localStorage.["settings"] <- encode
         { model with showOptions = showOptions }, Cmd.none
-    | Reset -> Game.Fresh(), Cmd.none
+    | Reset -> { Game.Fresh() with showOptions = model.showOptions }, Cmd.none
     | AnswerKey k ->
         if model.showOptions && k = Enter then
             model, Cmd.ofMsg ToggleOptions

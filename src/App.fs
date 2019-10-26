@@ -28,6 +28,9 @@ Program.mkProgram init update view
                 dispatch (AnswerKey HintKey)
             elif key = "O" then
                 dispatch ToggleOptions
+            elif key = "R" && e.ctrlKey then
+                dispatch Reset
+                e.preventDefault()
         )
     )
 |> Program.withReactBatched "main"
