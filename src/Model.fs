@@ -4,12 +4,12 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Browser.WebStorage
+open Common
 
 type AnswerState = | NeedsReview | Good | NoAnswer | ChromeOnly
 module Seq =
     let every pred = not << Seq.exists (not << pred)
 
-let delay1 f x _ = f x
 module Enums =
     type MathKey = | Number of int * string | Enter | Backspace | HintKey
     type MathType = | Plus | Minus | Times | Divide
@@ -217,6 +217,7 @@ type Game = {
                 let reviewList' =
                     { Review.lhs = problem.lhs; rhs = problem.rhs; problem = problem.question; correctAnswer = problem.answer; guess = this.currentAnswer } :: this.reviewList
                 { this with currentAnswer = ""; score = this.score - 100; cells = updateCells NeedsReview; reviewList = reviewList' }
+            |> Game.nextProblem
         else
             this
 

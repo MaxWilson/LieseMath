@@ -5,11 +5,13 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 
-open Model
-open Model.Enums
 open Fable
 open Fable.React
 open Fable.React.Props
+
+open Common
+open Model
+open Model.Enums
 
 type SettingChange =
     | Sound of SoundState
@@ -107,7 +109,7 @@ let view (g:Game) dispatch =
             [viewOptions g.settings dispatch; hintTable]
         else [
             h3[ClassName "scoreDisplay"][str <| sprintf "Score: %d" g.score]
-            div[ClassName "numDisplay"][str (defaultArg g.messageToUser g.problem.question)]
+            div[ClassName "numDisplay"][str (defaultArg g.messageToUser (sprintf "%s = %s" g.problem.question (if g.currentAnswer = "" then String.replicate g.problem.answer.Length "?" else g.currentAnswer)))]
             div[ClassName "keyList"][
                 let maybeDispatch = if g.messageToUser.IsSome then ignore else dispatch
                 for k in keysOf g.settings.mathBase do

@@ -86,23 +86,6 @@ type IntegerInput(props: IntegerInputProps) =
 let nothing = Unchecked.defaultof<ReactElement>
 let inline adapt x = unbox <| box x // suppress compile errors in legacy code
 
-module Sounds =
-    let sound file =
-        let s = Browser.Dom.HTMLAudioElement.Create()
-        s.src = file
-        s
-    let cheers = [
-        sound("1_person_cheering-Jett_Rifkin-1851518140.mp3")
-        sound("Cheer1.m4a")
-        sound("Cheer2.m4a")
-        sound("Cheer4.m4a")
-        sound("Cheer5.m4a")
-        sound("Cheer6.m4a")
-        ]
-    let bomb = sound("Grenade Explosion-SoundBible.com-2100581469.mp3")
-    let SoundSetting = PersistentSetting("Sound", On)
-open Sounds
-
 type MathBox() as this =
     inherit React.Component<unit, MathBoxViewState>()
     let mutable lastCheer = -1;
