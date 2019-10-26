@@ -23,7 +23,6 @@ type SettingChange =
 type Message =
     | Reset
     | ToggleOptions
-    | ToggleHints
     | AnswerKey of MathKey
     | Setting of SettingChange
 let onClick f x = OnClick <| fun _ -> f x
@@ -111,12 +110,13 @@ let view (g:Game) dispatch =
             yield div[ClassName "keyList"][
                 let maybeDispatch = if g.messageToUser.IsSome then ignore else dispatch
                 for k in keysOf g.settings.mathBase do
+                    let keyButton label = btn label [onClick maybeDispatch (AnswerKey k)]
                     yield
                         match k with
-                        | Number(label) -> btn label [onClick maybeDispatch (AnswerKey k)]
-                        | Enter -> btn "ENTER" [onClick maybeDispatch (AnswerKey k)]
-                        | Enums.Backspace -> btn "Backspace" [onClick maybeDispatch (AnswerKey k)]
-                        | HintKey -> btn "Show hints" [onClick maybeDispatch ToggleHints]
+                        | Number(label) -> keyButton label
+                        | Enter -> keyButton "ENTER"
+                        | Enums.Backspace -> keyButton "Backspace"
+                        | HintKey -> keyButton "Show hints"
                 ]
             if g.showHints then yield hintTable
             ]

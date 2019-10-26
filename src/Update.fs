@@ -33,8 +33,6 @@ let update msg model =
             let encode = Thoth.Json.Encode.Auto.toString(1, model.settings)
             Browser.WebStorage.localStorage.["settings"] <- encode
         { model with showOptions = showOptions }, Cmd.none
-    | ToggleHints ->
-        { model with showHints = not model.showHints }, Cmd.none
     | Reset -> Game.Fresh(), Cmd.none
     | Setting msg ->
         let settings = model.settings
@@ -74,4 +72,4 @@ let update msg model =
                     | _ -> ignore
                 Game.TryAdvance model onCorrect onIncorrect, Cmd.none
             | HintKey ->
-                model, Cmd.ofMsg ToggleHints
+                { model with showHints = not model.showHints }, Cmd.none
