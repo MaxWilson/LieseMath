@@ -108,12 +108,13 @@ let view (g:Game) dispatch =
                 let maybeDispatch = if g.messageToUser.IsSome then ignore else dispatch
                 for k in keysOf g.settings.mathBase do
                     let keyButton label = btn label [onClick maybeDispatch (AnswerKey k)]
-                    yield
-                        match k with
-                        | Number(label) -> keyButton label
-                        | Enter -> keyButton "ENTER"
-                        | Enums.Backspace -> keyButton "Backspace"
-                        | HintKey -> keyButton "Show hints"
+                    if not <| (k = Enter && g.settings.autoEnter) then
+                        yield
+                            match k with
+                            | Number(label) -> keyButton label
+                            | Enter -> keyButton "ENTER"
+                            | Enums.Backspace -> keyButton (if g.showHints then "Back" else "Backspace")
+                            | HintKey -> keyButton "Show hints"
                 ]
             if g.showHints then yield hintTable
             ]
