@@ -1,2 +1,2 @@
-pushd \code\BadanarniMath
-git checkout master && xcopy public\* publish\ /y && fable --target prod && webpack -p && git checkout gh-pages && xcopy publish\* /y . && git add . && git commit -m "New version" --amend && git push -f && git checkout master
+pushd ~%dp0
+git checkout master && npm run build && (robocopy /s deploy ..\BMathPublish || echo OK) && pushd ..\BMathPublish && git add . && git commit -m "New Version" && git push && popd
