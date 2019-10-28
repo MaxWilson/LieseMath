@@ -7,6 +7,7 @@ open Browser.WebStorage
 open Common
 
 type AnswerState = | NeedsReview | Good | NoAnswer | ChromeOnly
+type Correctness = NotReady | Correct | Incorrect
 module Seq =
     let every pred = not << Seq.exists (not << pred)
 
@@ -30,6 +31,7 @@ type Settings = {
     autoEnter: bool
     progressiveDifficulty: bool
     sound: SoundState
+    feedbackDuration: int
     } with
     static member Default = {
         size = 12
@@ -38,6 +40,7 @@ type Settings = {
         autoEnter = false
         progressiveDifficulty = true
         sound = On
+        feedbackDuration = 1000
     }
 
 let FormatByBase mathBase n =
@@ -131,7 +134,7 @@ type Game = {
     problem: {| lhs: int; rhs: int; question: string; answer: string |}
     score: int
     currentAnswer: string
-    messageToUser: string option
+    messageToUser: {| color: string; msg: string |} option
     showOptions: bool
     showHints: bool
     } with
@@ -193,7 +196,7 @@ type Game = {
                 { g with problem = {|lhs = lhs; rhs = rhs; question = problem; answer = answer |}}
     static member CurrentProblem (this: Game) =
         sprintf "%s = %s" this.problem.question (if this.currentAnswer.Length > 0 then this.currentAnswer else "??")
-    static member TryAdvance (this: Game) onCorrect onIncorrect =
+    static member Evaluate (this: Game) =
         let currentAnswer = this.currentAnswer
         if this.currentAnswer.Length > 0 then
             let problem = this.problem
@@ -205,21 +208,18 @@ type Game = {
                                 if y <> j then cell else (fst cell, newValue))
                     )
             if problem.answer = currentAnswer then
-                onCorrect()
                 let reviewList' =
                     if this.reviewList |> Seq.exists (fun review -> (review.lhs, review.rhs) = (problem.lhs, problem.rhs)) then
                     // now that they've got it correct, eliminate it from the review list
                         this.reviewList |> List.filter (fun review -> (review.lhs, review.rhs) <> (problem.lhs, problem.rhs))
                     else this.reviewList
-                { this with currentAnswer = ""; score = this.score + 100; cells = updateCells Good; reviewList = reviewList' }
+                Correct, { this with currentAnswer = ""; score = this.score + 100; cells = updateCells Good; reviewList = reviewList' }
             else
-                onIncorrect()
                 let reviewList' =
                     { Review.lhs = problem.lhs; rhs = problem.rhs; problem = problem.question; correctAnswer = problem.answer; guess = this.currentAnswer } :: this.reviewList
-                { this with currentAnswer = ""; score = this.score - 100; cells = updateCells NeedsReview; reviewList = reviewList' }
-            |> Game.nextProblem
+                Incorrect, { this with currentAnswer = ""; score = this.score - 100; cells = updateCells NeedsReview; reviewList = reviewList' }
         else
-            this
+            NotReady, this
 
 #if LEGACY
 

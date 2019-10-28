@@ -20,11 +20,13 @@ type SettingChange =
     | MathBase of MathBase
     | Operation of MathType
     | Maximum of int
+    | FeedbackDuration of int
 type Message =
     | Reset
     | ToggleOptions
     | AnswerKey of MathKey
     | Setting of SettingChange
+    | UserMessage of {| color:string; msg: string |} option
 let onClick f x = OnClick <| fun _ -> f x
 let btn label attrs = button attrs [str label]
 
@@ -71,6 +73,7 @@ let viewOptions (settings:Settings) dispatch =
         setting "Base" settings.mathBase MathBase ["Binary", Binary; "Decimal", Decimal; "Hexadecimal", Hex]
         setting "Operation" settings.mathType Operation ["+", Plus; "−", Minus; "×", Times; "÷", Divide]
         maxSlider
+        setting "Feedback duration" settings.feedbackDuration FeedbackDuration ["None", 0; "Short", 300; "Medium", 1000; "Long", 5000]
         button [ClassName "optionDoneButton"; OnClick (delay1 dispatch ToggleOptions)][unbox "OK"]
         ]
 
@@ -103,7 +106,11 @@ let view (g:Game) dispatch =
             [viewOptions g.settings dispatch; hintTable]
         else [
             yield h3[ClassName "scoreDisplay"][str <| sprintf "Score: %d" g.score]
-            yield div[ClassName "numDisplay"][str (defaultArg g.messageToUser (sprintf "%s = %s" g.problem.question (if g.currentAnswer = "" then String.replicate g.problem.answer.Length "?" else g.currentAnswer)))]
+            yield
+                if g.messageToUser.IsSome then
+                    div[ClassName "numDisplay"; Style[Color g.messageToUser.Value.color]][str g.messageToUser.Value.msg]
+                else
+                    div[ClassName "numDisplay"][str (sprintf "%s = %s" g.problem.question (if g.currentAnswer = "" then String.replicate g.problem.answer.Length "?" else g.currentAnswer))]
             yield div[ClassName "keyList"][
                 let maybeDispatch = if g.messageToUser.IsSome then ignore else dispatch
                 for k in keysOf g.settings.mathBase do
