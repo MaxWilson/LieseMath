@@ -120,7 +120,7 @@ let view (g:Game) dispatch =
                             match k with
                             | Number(label) -> keyButton label
                             | Enter -> keyButton "ENTER"
-                            | Enums.Backspace -> keyButton (if g.showHints then "Back" else "Backspace")
+                            | Enums.Backspace -> keyButton "Back"
                             | HintKey -> keyButton "Show hints"
                 ]
             if g.showHints then yield hintTable
