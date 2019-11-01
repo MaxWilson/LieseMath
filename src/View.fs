@@ -10,6 +10,7 @@ open Fable.React
 open Fable.React.Props
 
 open Common
+open ViewElement
 open Model
 open Model.Enums
 
@@ -32,6 +33,22 @@ let btn label attrs = button attrs [str label]
 
 [<Emit("parseInt($0, $1)")>]
 let parseInt v radix = jsNative
+
+let ofEnum x = x |> List.map (fun v -> v, v.ToString())
+let ofBool = [true, "On"; false, "Off"]
+
+// minor perf opt: pre-curry all the settings. Not necessary, just seeing if it can be done elegantly.
+let adapt (label, currentValueGetter, modelCommand, options) model d = ViewElement.setting label options (currentValueGetter model) (fun v -> d (modelCommand v |> Setting))
+let changeTo wrap (ChangeValue v) = wrap v
+let settingsControls = [
+    // hey, this getter/setter pattern kind of reminds me of lenses!
+    ("Auto-ENTER", (fun s -> s.autoEnter), changeTo AutoEnter, ofBool) |> adapt
+    ("Sound", (fun (s:Settings) -> s.sound), changeTo Sound, [On, "On"; Off, "Off"; BombOnly, "Bomb"; CheerOnly, "Cheers"]) |> adapt
+    ("Feedback duration", (fun s -> s.feedbackDuration), changeTo FeedbackDuration, [0, "None"; 300, "Short"; 1000, "Medium"; 5000, "Long"]) |> adapt
+    ("Progressive difficulty", (fun s -> s.progressiveDifficulty), changeTo ProgressiveDifficulty, ofBool) |> adapt
+    ("Base", (fun s -> s.mathBase), changeTo MathBase, ofEnum [Binary; Decimal; Hex]) |> adapt
+    ("Operation", (fun s -> s.mathType), changeTo Operation, [Plus, "+"; Minus, "−"; Times, "×"; Divide, "÷" ]) |> adapt
+    ]
 
 let viewOptions (settings:Settings) dispatch =
     let setting label currentValue msg options =
@@ -67,14 +84,10 @@ let viewOptions (settings:Settings) dispatch =
                 ]
             ]
     div [ClassName "optionsDisplay"] [
-        setting "Sound" settings.sound Sound ["On", On; "Off", Off; "Bomb", BombOnly; "Cheers", CheerOnly]
-        setting "Auto-ENTER" settings.autoEnter AutoEnter ["On", true; "Off", false]
-        setting "Progressive difficulty" settings.progressiveDifficulty ProgressiveDifficulty ["On", true; "Off", false]
-        setting "Base" settings.mathBase MathBase ["Binary", Binary; "Decimal", Decimal; "Hexadecimal", Hex]
-        setting "Operation" settings.mathType Operation ["+", Plus; "−", Minus; "×", Times; "÷", Divide]
-        maxSlider
-        setting "Feedback duration" settings.feedbackDuration FeedbackDuration ["None", 0; "Short", 300; "Medium", 1000; "Long", 5000]
-        button [ClassName "optionDoneButton"; OnClick (delay1 dispatch ToggleOptions)][unbox "OK"]
+        for setting in settingsControls do
+            yield setting settings dispatch
+        yield maxSlider
+        yield button [ClassName "optionDoneButton"; OnClick (delay1 dispatch ToggleOptions)][unbox "OK"]
         ]
 
 let view (g:Game) dispatch =
