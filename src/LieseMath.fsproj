@@ -6,6 +6,8 @@
   <ItemGroup>
     <None Include="..\sass\main.sass" Link="main.sass" />
     <Compile Include="Common.fs" />
+    <Compile Include="Packrat.fs" />
+    <Compile Include="Domain.fs" />
     <Compile Include="ViewElement.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="View.fs" />
