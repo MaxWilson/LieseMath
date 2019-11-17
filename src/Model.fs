@@ -18,8 +18,9 @@ type Model = {
     mode: Mode
     activity: Activity
     rawFormula: string
-    formula: (string * Equation) option
+    formula: (string[] * Equation) option
     entries: Entry []
+    error: string option
 }
 
 let fresh = {
@@ -28,4 +29,5 @@ let fresh = {
     rawFormula = ""
     formula = None
     entries = Array.empty
+    error = None
     }

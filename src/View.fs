@@ -16,6 +16,13 @@ open Model
 [<Emit("parseInt($0, $1)")>]
 let parseInt v radix = jsNative
 
+type Cmd =
+    | SwitchMode of Mode
+    | SwitchActivity of Activity
+    | RawFormula of string
+    | ChangeFormula of string
+    | Error of string option
+
 let view (m:Model.Model) dispatch =
     div [ClassName "ui"][
         div[ClassName "modeSelection"] [
@@ -32,32 +39,48 @@ let view (m:Model.Model) dispatch =
             a[OnClick ignore][str "Help"]
             ]
         div[ClassName "equationEntry"][
-            form[] [
-                input[Placeholder "Enter an equation, e.g. 2y = -x + 15"]
-                button[Type "submit"][str "OK"]
-                ]
+            match m.error with
+            | None ->
+                yield form[OnSubmit (fun e -> e.preventDefault(); m.rawFormula |> ChangeFormula |> dispatch)] [
+                    input[Placeholder "Enter an equation, e.g. 2y = -x + 15"; Value m.rawFormula; OnChange(fun e -> e.Value |> RawFormula |> dispatch)]
+                    button[Type "submit"][str "OK"]
+                    ]
+            | Some err ->
+                yield span[ClassName "error"][str err]
             ]
         div[ClassName "tableEntry"][
-            table[][
-                tr[][
-                    th[][str "x"]
-                    th[][str "y"]
-                    th[][str "2y"]
-                    th[][str "-x + 15"]
+            match m.formula with
+            | None -> ()
+            | Some(variables, Domain.Equation.Equation(lhs, rhs)) ->
+                let redundant = function
+                    | Domain.Equation.Variable(_, Domain.Equation.Number(1, (None | Some 1)))::[] -> true
+                    | _ -> false
+                yield table[][
+                    tr[][
+                        for v in variables do
+                            yield th[][str v]
+                        if not (redundant lhs) then
+                            yield th[][str (Domain.Equation.renderElements true lhs)]
+                        if not (redundant rhs) then
+                            yield th[][str (Domain.Equation.renderElements true rhs)]
+                        ]
+                    tr[][
+                        yield td[][input [Value "3"]]
+                        yield td[][]
+                        if not (redundant lhs) then
+                            yield td[][]
+                        if not (redundant rhs) then
+                            yield td[][]
+                        ]
+                    tr[][
+                        yield td[][input [Value "3"]]
+                        yield td[][input [Value "4"]]
+                        if not (redundant lhs) then
+                            yield td[][str "8"]
+                        if not (redundant rhs) then
+                            yield td[][str "12"]
+                        ]
                     ]
-                tr[][
-                    td[][input [Value "3"]]
-                    td[][]
-                    td[][]
-                    td[][]
-                    ]
-                tr[][
-                    td[][input [Value "3"]]
-                    td[][input [Value "4"]]
-                    td[][str "8"]
-                    td[][str "12"]
-                    ]
-                ]
             ]
         div[ClassName "showAnswers"][
             div[][

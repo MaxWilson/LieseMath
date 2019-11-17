@@ -24,29 +24,28 @@ module Equation =
         function
         | Constant c -> Constant(negate c)
         | Variable(v, n) -> Variable(v, negate n)
-    let renderEquation =
-        let rec renderElements isFirstTerm elements =
-            let (|Positive|Negative|) = function
-                | Number(n, Some d) when (n >= 0) && (d > 0) || (n < 0) && (d < 0) -> Positive
-                | Number(n, None) when n >= 0 -> Positive
-                | _ -> Negative
-            let prefix =
-                match elements with
-                | (Constant Positive::_ | Variable(_, Positive)::_) when not isFirstTerm -> " + "
-                | Constant Negative::_ | Variable(_, Negative)::_ -> if isFirstTerm then "-" else " - "
-                | _ -> ""
-            let renderNumber = function
-                | Number(n, Some d) -> sprintf "%d/%d" (abs n) (abs d)
-                | Number(n, None) -> (abs n).ToString()
-            let renderVariable variable = function
-                | Number(n, Some d) when n = d -> variable
-                | Number((1 | -1), None) -> variable
-                | n -> renderNumber n + variable
+    let rec renderElements isFirstTerm elements =
+        let (|Positive|Negative|) = function
+            | Number(n, Some d) when (n >= 0) && (d > 0) || (n < 0) && (d < 0) -> Positive
+            | Number(n, None) when n >= 0 -> Positive
+            | _ -> Negative
+        let prefix =
             match elements with
-            | Variable(variable, n)::t -> prefix + (renderVariable variable n) + (renderElements false t)
-            | Constant(n)::t -> prefix + (renderNumber n) + (renderElements false t)
-            | [] -> ""
-        function
+            | (Constant Positive::_ | Variable(_, Positive)::_) when not isFirstTerm -> " + "
+            | Constant Negative::_ | Variable(_, Negative)::_ -> if isFirstTerm then "-" else " - "
+            | _ -> ""
+        let renderNumber = function
+            | Number(n, Some d) -> sprintf "%d/%d" (abs n) (abs d)
+            | Number(n, None) -> (abs n).ToString()
+        let renderVariable variable = function
+            | Number(n, Some d) when n = d -> variable
+            | Number((1 | -1), None) -> variable
+            | n -> renderNumber n + variable
+        match elements with
+        | Variable(variable, n)::t -> prefix + (renderVariable variable n) + (renderElements false t)
+        | Constant(n)::t -> prefix + (renderNumber n) + (renderElements false t)
+        | [] -> ""
+    let renderEquation = function
         | Equation(lhs, rhs) -> sprintf "%s = %s" (renderElements true lhs) (renderElements true rhs)
 
 #nowarn "40" // it's not an issue, we're not doing anything dangerous like calling code during initialization
