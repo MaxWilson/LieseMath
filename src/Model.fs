@@ -53,3 +53,21 @@ let checkStatus (variables: string[], formula: Equation) (e: Entry) =
             let right = evaluateElements (fun v -> answers.[v].Value) rhs |> renderNumber |> Some
             { e with leftOutput = left; rightOutput = right; status = if left = right then Correct else Incorrect }
     else e
+
+// for debugging
+let summarize model =
+    match model.formula with
+    | Some(_, eq) ->
+        for e in model.entries do
+            let eval v =
+                match e.answers |> Map.tryFind v with
+                | Some txt ->
+                    match Domain.Parse.tryParseNumber txt with
+                    | Some n -> n
+                    | None -> Number(0, None)
+                | None -> Number(0, None)
+            let render side = evaluateElements eval side |> renderNumber
+            let (Equation(lhs, rhs)) = eq
+            printfn "%s when %A --> %s = %s" (renderEquation eq) (e.answers |> Array.ofSeq) (render lhs) (render rhs)
+    | None -> printfn "No formula"
+    model

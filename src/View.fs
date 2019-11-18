@@ -24,6 +24,7 @@ type Cmd =
     | Error of string option
     | EntryValue of row: int * variable: string * value: string
     | SolveFor of string option
+    | ShowAnswers
 
 // an input-like component which stores state locally until blur
 let localInput =
@@ -46,6 +47,9 @@ let localInput =
     (fun value (props: seq<IHTMLProp>) onChange -> component'(value, props, onChange))
 
 let view (m:Model.Model) dispatch =
+    printfn "Rendering..."
+    summarize m |> ignore
+    printfn "Done rendering"
     div [ClassName "ui"][
         h1[ClassName "header"][str "Liese's Equation Checker"]
         //div[ClassName "modeSelection"] [
@@ -106,10 +110,11 @@ let view (m:Model.Model) dispatch =
                     yield! m.entries |> Seq.mapi (fun i entry ->
                         tr[][
                             yield match entry.status with | Correct -> td[ClassName "correct"][str "Correct!"] | Incorrect -> td[ClassName "incorrect"][str "Incorrect"] | Pending -> td[][]
-                            for v in variables do
+                            for variable in variables do
                                 yield td[][
-                                            let value = match entry.answers |> Map.tryFind v with Some v -> v | _ -> ""
-                                            yield localInput value [] (fun newValue -> EntryValue(i, v, newValue) |> dispatch)
+                                            let value = match entry.answers |> Map.tryFind variable with Some v -> v | _ -> ""
+                                            yield input [OnChange(fun e -> EntryValue(i, variable, e.Value) |> dispatch); Value value]
+                                            yield localInput value [] (fun newValue -> EntryValue(i, variable, newValue) |> dispatch)
                                             ]
                             if not (redundant lhs) then
                                 yield td[] (entry.leftOutput |> Option.toList |> List.map str)
@@ -131,10 +136,10 @@ let view (m:Model.Model) dispatch =
                     ]
             | _ -> ()
             ]
-        //div[ClassName "showAnswers"][
-        //    div[][
-        //        if m.activity = DataEntry then
-        //            yield button[][str "Show answers"]
-        //        ]
-        //    ]
+        div[ClassName "showAnswers"][
+            div[][
+                if m.activity = DataEntry then
+                    yield button[OnClick (fun _ -> dispatch ShowAnswers)][str "Show answers"]
+                ]
+            ]
         ]
