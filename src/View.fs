@@ -51,9 +51,6 @@ let localInput =
     (fun value (props: seq<IHTMLProp>) onChange -> component'(value, props, onChange))
 
 let view (m:Model.Model) dispatch =
-    printfn "Rendering..."
-    summarize m |> ignore
-    printfn "Done rendering"
     div [ClassName "ui"][
         h1[ClassName "header"][str "Liese's Equation Checker"]
         //div[ClassName "modeSelection"] [
