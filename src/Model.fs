@@ -19,7 +19,7 @@ type Model = {
     activity: Activity
     rawFormula: string
     formula: (string[] * Equation) option
-    entries: Entry []
+    entries: Entry list
     error: string option
 }
 
@@ -28,6 +28,13 @@ let fresh = {
     activity = EquationEntry
     rawFormula = ""
     formula = None
-    entries = Array.empty
+    entries = []
     error = None
+    }
+
+let freshEntry variable value = {
+    answers = Map.empty |> Map.add variable value
+    leftOutput = None
+    rightOutput = None
+    status = Pending
     }

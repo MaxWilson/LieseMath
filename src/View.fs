@@ -22,6 +22,23 @@ type Cmd =
     | RawFormula of string
     | Formula of string
     | Error of string option
+    | EntryValue of row: int * variable: string * value: string
+
+// an input-like component which stores state locally until blur
+let localInput value props onChange =
+    FunctionComponent.Of(fun () ->
+        let v = Hooks.useState value
+        let lst : IHTMLProp list = [
+            yield upcast Value v.current
+            yield upcast OnChange(fun e -> if e <> null then v.update(e.Value))
+            yield upcast OnKeyDown(fun e -> if e.keyCode = 13. then
+                                                e.preventDefault()
+                                                onChange v.current)
+            yield upcast OnBlur(fun _ -> onChange v.current)
+            yield! props
+            ]
+        input lst
+        )()
 
 let view (m:Model.Model) dispatch =
     div [ClassName "ui"][
@@ -71,7 +88,8 @@ let view (m:Model.Model) dispatch =
                     | Domain.Equation.Variable(_, Domain.Equation.Number(1, (None | Some 1)))::[] -> true
                     | _ -> false
                 yield table[][
-                    tr[][
+                    yield tr[][
+                        yield th[][str m.rawFormula]
                         for v in variables do
                             yield th[][str v]
                         if not (redundant lhs) then
@@ -79,28 +97,38 @@ let view (m:Model.Model) dispatch =
                         if not (redundant rhs) then
                             yield th[][str (Domain.Equation.renderElements true rhs)]
                         ]
-                    tr[][
-                        yield td[][input [Value "3"]]
-                        yield td[][]
-                        if not (redundant lhs) then
+                    yield! m.entries |> Seq.mapi (fun i entry ->
+                        tr[][
+                            yield match entry.status with | Correct -> td[ClassName "correct"][str "Correct!"] | Incorrect -> td[ClassName "incorrect"][str "Incorrect"] | Pending -> td[][]
+                            for v in variables do
+                                yield td[][
+                                            let value = match entry.answers |> Map.tryFind v with Some v -> v | _ -> ""
+                                            yield localInput value [] (fun newValue -> EntryValue(i, v, newValue) |> dispatch)
+                                            ]
+                            if not (redundant lhs) then
+                                yield td[] (entry.leftOutput |> Option.toList |> List.map str)
+                            if not (redundant rhs) then
+                                yield td[] (entry.rightOutput |> Option.toList |> List.map str)
+                            ]) |> List.ofSeq
+                    // If there are no blank rows, also yield some blank rows for more data entry
+                    let every f x = x |> Seq.exists f |> not
+                    if m.entries |> Seq.exists (fun e -> e.answers |> every (function KeyValue(_, v) -> System.String.IsNullOrWhiteSpace v)) then
+                        yield tr[][
                             yield td[][]
-                        if not (redundant rhs) then
-                            yield td[][]
-                        ]
-                    tr[][
-                        yield td[][input [Value "3"]]
-                        yield td[][input [Value "4"]]
-                        if not (redundant lhs) then
-                            yield td[][str "8"]
-                        if not (redundant rhs) then
-                            yield td[][str "12"]
-                        ]
+                            for v in variables do
+                                yield td[][yield localInput "" [] (fun newValue -> if not (System.String.IsNullOrWhiteSpace newValue) then (EntryValue(m.entries.Length, v, newValue) |> dispatch))]
+                            if not (redundant lhs) then
+                                yield td[][]
+                            if not (redundant rhs) then
+                                yield td[][]
+                            ]
                     ]
             | _ -> ()
             ]
         div[ClassName "showAnswers"][
             div[][
-                button[][str "Show answers"]
+                if m.activity = DataEntry then
+                    yield button[][str "Show answers"]
                 ]
             ]
         ]

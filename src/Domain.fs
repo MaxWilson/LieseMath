@@ -9,21 +9,26 @@ module Equation =
     type Equation = Equation of left: Element list * right: Element list
     let rec simplify = function
         | Number(n, Some d) when n < 0 && d < 0 -> Number(-n, Some -d) |> simplify
+        | Number(n, Some 1) -> Number(n, None) |> simplify
         | Number(n, Some d) ->
             let bound = (min (abs n) (abs d))
             let mutable n, d = n, d
+            let mutable simplified = false
             for x in 2..bound do // brute force simplification method
                 while n % x = 0 && d % x = 0 && (min (abs n) (abs d)) > 1 do
-                    printfn "Dividing by %d" x
                     n <- n / x
                     d <- d / x
-            Number(n, Some d)
+                    simplified <- true
+            Number(n, Some d) |> (if simplified then simplify else id)
         | n -> n
     let negate = fun (Number(n,d)) -> Number(-n, d) |> simplify
     let negateElement =
         function
         | Constant c -> Constant(negate c)
         | Variable(v, n) -> Variable(v, negate n)
+    let renderNumber = function
+        | Number(n, Some d) -> sprintf "%d/%d" (abs n) (abs d)
+        | Number(n, None) -> (abs n).ToString()
     let rec renderElements isFirstTerm elements =
         let (|Positive|Negative|) = function
             | Number(n, Some d) when (n >= 0) && (d > 0) || (n < 0) && (d < 0) -> Positive
@@ -34,9 +39,6 @@ module Equation =
             | (Constant Positive::_ | Variable(_, Positive)::_) when not isFirstTerm -> " + "
             | Constant Negative::_ | Variable(_, Negative)::_ -> if isFirstTerm then "-" else " - "
             | _ -> ""
-        let renderNumber = function
-            | Number(n, Some d) -> sprintf "%d/%d" (abs n) (abs d)
-            | Number(n, None) -> (abs n).ToString()
         let renderVariable variable = function
             | Number(n, Some d) when n = d -> variable
             | Number((1 | -1), None) -> variable
@@ -47,6 +49,28 @@ module Equation =
         | [] -> ""
     let renderEquation = function
         | Equation(lhs, rhs) -> sprintf "%s = %s" (renderElements true lhs) (renderElements true rhs)
+    let (|Denominator|) = function None -> 1 | Some v -> v
+    let add lhs rhs =
+        match lhs, rhs with
+        | Number(n1, (None | Some 1)), Number(n2, (None | Some 1)) -> Number(n1 + n2, None)
+        | Number(n1, Denominator d1), Number(n2, Denominator d2) -> Number((n1 * d2 + n2 * d1), Some(d1 * d2)) |> simplify
+    let subtract lhs rhs =
+        match lhs, rhs with
+        | Number(n1, (None | Some 1)), Number(n2, (None | Some 1)) -> Number(n1 + n2, None)
+        | Number(n1, Denominator d1), Number(n2, Denominator d2) -> Number((n1 * d2 - n2 * d1), Some(d1 * d2)) |> simplify
+    let multiply lhs rhs =
+        match lhs, rhs with
+        | Number(n1, Denominator d1), Number(n2, Denominator d2) -> Number(n1 * n2, Some (d1 * d2)) |> simplify
+    let reciprocal n =
+        match n with
+        | Number(n1, Denominator d1) -> Number(d1, Some n1) |> simplify
+    let evaluateElements (valueLookup: string -> Number) (elements: Element list) =
+        elements
+        |> List.map (function
+            | Constant n -> n
+            | Variable(v, n) -> multiply n (valueLookup v)
+            )
+        |> List.reduce add
 
 #nowarn "40" // it's not an issue, we're not doing anything dangerous like calling code during initialization
 module Parse =
@@ -94,4 +118,9 @@ module Parse =
         match ParseArgs.Init(str) with
         | Equation(e, End) -> Some e
         | _ -> None
+    let tryParseNumber (str: string) =
+        match ParseArgs.Init(str) with
+        | Number(n, End) -> Some n
+        | _ -> None
+
 

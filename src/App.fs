@@ -7,6 +7,8 @@ open Elmish
 open Elmish.Debug
 open Elmish.HMR
 
+
+
 // App
 Program.mkProgram init update view
 //|> Program.toNavigable (parseHash pageParser) urlUpdate
