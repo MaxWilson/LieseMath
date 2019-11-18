@@ -43,18 +43,8 @@ let update msg model =
         let model =
             if i >= model.entries.Length then
                 { model with entries = model.entries @ [ freshEntry variable value ] }
+            elif model.entries.[i].answers |> Map.tryFind variable = Some value then // no change, don't do anything to avoid messing up focus
+                model
             else
-                let checkStatus (e: Entry) =
-                    if e.answers.Count = (model.formula.Value |> fst |> Seq.length) then
-                        let answers = e.answers |> Map.map (fun variable txt -> Domain.Parse.tryParseNumber txt)
-                        if answers |> Map.exists (fun _ v -> Option.isNone v) then
-                            // not ready yet
-                            e
-                        else
-                            let (Equation(lhs, rhs)) = model.formula.Value |> snd
-                            let left = evaluateElements (fun v -> answers.[v].Value) lhs |> renderNumber |> Some
-                            let right = evaluateElements (fun v -> answers.[v].Value) rhs |> renderNumber |> Some
-                            { e with leftOutput = left; rightOutput = right; status = if left = right then Correct else Incorrect }
-                    else e
-                { model with entries = model.entries |> List.mapi(fun j e -> if i <> j then e else { e with answers = e.answers |> Map.add variable value } |> checkStatus) }
+                { model with entries = model.entries |> List.mapi(fun j e -> if i <> j then e else { e with answers = e.answers |> Map.add variable value } |> checkStatus model.formula.Value) }
         model, Cmd.Empty

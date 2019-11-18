@@ -25,37 +25,41 @@ type Cmd =
     | EntryValue of row: int * variable: string * value: string
 
 // an input-like component which stores state locally until blur
-let localInput value props onChange =
-    FunctionComponent.Of(fun () ->
-        let v = Hooks.useState value
-        let lst : IHTMLProp list = [
-            yield upcast Value v.current
-            yield upcast OnChange(fun e -> if e <> null then v.update(e.Value))
-            yield upcast OnKeyDown(fun e -> if e.keyCode = 13. then
-                                                e.preventDefault()
-                                                onChange v.current)
-            yield upcast OnBlur(fun _ -> onChange v.current)
-            yield! props
-            ]
-        input lst
-        )()
+let localInput =
+    let component' =
+        FunctionComponent.Of(
+            fun (value, props, onChange) ->
+                let v = Hooks.useState value
+                let lst : IHTMLProp list = [
+                    yield upcast Value v.current
+                    yield upcast OnChange(fun e -> if e <> null then v.update(e.Value))
+                    yield upcast OnKeyDown(fun e -> if e.keyCode = 13. then
+                                                        e.preventDefault()
+                                                        onChange v.current
+                                                    )
+                    yield upcast OnBlur(fun _ -> onChange v.current)
+                    yield! props
+                    ]
+                input lst
+            , memoizeWith = (fun (v1, p1, _) (v2, p2, _) -> v1 = v2))
+    (fun value (props: seq<IHTMLProp>) onChange -> component'(value, props, onChange))
 
 let view (m:Model.Model) dispatch =
     div [ClassName "ui"][
         h1[ClassName "header"][str "Liese's Equation Checker"]
-        //div[ClassName "modeSelection"] [
-        //    label[][
-        //        input[Type "radio"; Name "mode"]
-        //        str "Homework"
-        //        ]
-        //    label[][
-        //        input[Type "radio"; Name "mode"]
-        //        str "Game mode"
-        //        ]
-        //    ]
-        //div[ClassName "help"][
-        //    a[OnClick ignore][str "Help"]
-        //    ]
+        div[ClassName "modeSelection"] [
+            label[][
+                input[Type "radio"; Name "mode"]
+                str "Homework"
+                ]
+            label[][
+                input[Type "radio"; Name "mode"]
+                str "Game mode"
+                ]
+            ]
+        div[ClassName "help"][
+            a[OnClick ignore][str "Help"]
+            ]
         div[ClassName "equationEntry"][
             match m.error with
             | None ->
@@ -90,9 +94,9 @@ let view (m:Model.Model) dispatch =
                     | _ -> false
                 yield table[][
                     yield tr[][
-                        yield th[][str m.rawFormula]
+                        yield th[][a [][str m.rawFormula]]
                         for v in variables do
-                            yield th[][str v]
+                            yield th[][a [][str v]]
                         if not (redundant lhs) then
                             yield th[][str (Domain.Equation.renderElements true lhs)]
                         if not (redundant rhs) then
@@ -126,10 +130,10 @@ let view (m:Model.Model) dispatch =
                     ]
             | _ -> ()
             ]
-        //div[ClassName "showAnswers"][
-        //    div[][
-        //        if m.activity = DataEntry then
-        //            yield button[][str "Show answers"]
-        //        ]
-        //    ]
+        div[ClassName "showAnswers"][
+            div[][
+                if m.activity = DataEntry then
+                    yield button[][str "Show answers"]
+                ]
+            ]
         ]
