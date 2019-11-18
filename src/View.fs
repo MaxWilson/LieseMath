@@ -48,19 +48,19 @@ let localInput =
 let view (m:Model.Model) dispatch =
     div [ClassName "ui"][
         h1[ClassName "header"][str "Liese's Equation Checker"]
-        div[ClassName "modeSelection"] [
-            label[][
-                input[Type "radio"; Name "mode"]
-                str "Homework"
-                ]
-            label[][
-                input[Type "radio"; Name "mode"]
-                str "Game mode"
-                ]
-            ]
-        div[ClassName "help"][
-            a[OnClick ignore][str "Help"]
-            ]
+        //div[ClassName "modeSelection"] [
+        //    label[][
+        //        input[Type "radio"; Name "mode"]
+        //        str "Homework"
+        //        ]
+        //    label[][
+        //        input[Type "radio"; Name "mode"]
+        //        str "Game mode"
+        //        ]
+        //    ]
+        //div[ClassName "help"][
+        //    a[OnClick ignore][str "Help"]
+        //    ]
         div[ClassName "equationEntry"][
             match m.error with
             | None ->
@@ -95,7 +95,7 @@ let view (m:Model.Model) dispatch =
                     | _ -> false
                 yield table[][
                     yield tr[][
-                        yield th[][a [OnClick(fun _ -> SolveFor(None) |> dispatch)][str m.rawFormula]]
+                        yield th[][a [OnClick(fun _ -> SolveFor None |> dispatch)][str (Domain.Equation.renderEquation m.userEnteredEquation.Value)]]
                         for v in variables do
                             yield th[][a [OnClick(fun _ -> SolveFor(Some v) |> dispatch)][str v]]
                         if not (redundant lhs) then
@@ -131,10 +131,10 @@ let view (m:Model.Model) dispatch =
                     ]
             | _ -> ()
             ]
-        div[ClassName "showAnswers"][
-            div[][
-                if m.activity = DataEntry then
-                    yield button[][str "Show answers"]
-                ]
-            ]
+        //div[ClassName "showAnswers"][
+        //    div[][
+        //        if m.activity = DataEntry then
+        //            yield button[][str "Show answers"]
+        //        ]
+        //    ]
         ]

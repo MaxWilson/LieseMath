@@ -31,6 +31,7 @@ let fresh = {
     formula = None
     entries = []
     error = None
+    userEnteredEquation = None
     }
 
 let freshEntry variable value = {
@@ -38,7 +39,6 @@ let freshEntry variable value = {
     leftOutput = None
     rightOutput = None
     status = Pending
-    userEnteredEquation = None
     }
 
 let checkStatus (variables: string[], formula: Equation) (e: Entry) =

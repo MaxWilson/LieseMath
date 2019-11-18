@@ -18,6 +18,13 @@ let setTimeout ms callback = jsNative
 module Cmd =
     let delayMsg delayMs msg = Cmd.ofSub(fun d -> setTimeout delayMs (fun _ -> d msg))
 
+let recheckEntries (model: Model) =
+    match model.formula with
+    | Some(formula) ->
+        { model with entries = model.entries |> List.map (fun e -> { e with status = Pending; leftOutput = None; rightOutput = None } |> checkStatus formula) }
+    | None -> model
+
+
 let update msg model =
     match msg with
     | RawFormula txt -> { model with rawFormula = txt }, Cmd.Empty
@@ -53,11 +60,11 @@ let update msg model =
         match model.formula with
         | None -> model, Cmd.Empty // shouldn't happen
         | Some(variables, eq) ->
-            match recheckEntries =
-                { model with entries = model.entries |> List.map (fun e -> { e with status = Pending; leftOutput = None; rightOutput = None} |> checkStatus) }
-            match variable with
-            | None ->
-                { model with formula = model.userEnteredEquation |> Option.map(fun e -> variables, e) } |> recheckEntries, Cmd.Empty
-            | Some variable ->
-                { model with formula = Some(variables, eq |> Domain.solveFor variable)} |> recheckEntries, Cmd.Empty
+            let equation =
+                match variable with
+                | None -> model.userEnteredEquation.Value
+                | Some variable ->
+                    eq |> Domain.solveFor variable
+            { model with formula = Some(variables, equation); rawFormula = (renderEquation equation) } |> recheckEntries, Cmd.Empty
+
 

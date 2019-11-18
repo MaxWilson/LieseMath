@@ -9,6 +9,7 @@ module Equation =
     type Equation = Equation of left: Element list * right: Element list
     let rec simplify = function
         | Number(n, Some d) when n < 0 && d < 0 -> Number(-n, Some -d) |> simplify
+        | Number(n, Some d) when d < 0 && n >= 0 -> Number(-n, Some -d) |> simplify // put negative numbers on top
         | Number(n, Some 1) -> Number(n, None) |> simplify
         | Number(n, Some d) ->
             let bound = (min (abs n) (abs d))
@@ -26,9 +27,9 @@ module Equation =
         function
         | Constant c -> Constant(negate c)
         | Variable(v, n) -> Variable(v, negate n)
-    let renderNumber = function
-        | Number(n, Some d) -> sprintf "%d/%d" (abs n) (abs d)
-        | Number(n, None) -> (abs n).ToString()
+    let renderNumber = simplify >> function
+        | Number(n, Some d) -> sprintf "%d/%d" n d
+        | Number(n, None) -> n.ToString()
     let rec renderElements isFirstTerm elements =
         let (|Positive|Negative|) = function
             | Number(n, Some d) when (n >= 0) && (d > 0) || (n < 0) && (d < 0) -> Positive
@@ -39,13 +40,16 @@ module Equation =
             | (Constant Positive::_ | Variable(_, Positive)::_) when not isFirstTerm -> " + "
             | Constant Negative::_ | Variable(_, Negative)::_ -> if isFirstTerm then "-" else " - "
             | _ -> ""
+        let renderNumberMagnitude = function
+            | Number(n, Some d) -> sprintf "%d/%d" (abs n) (abs d)
+            | Number(n, None) -> (abs n).ToString()
         let renderVariable variable = function
             | Number(n, Some d) when n = d -> variable
             | Number((1 | -1), None) -> variable
-            | n -> renderNumber n + variable
+            | n -> renderNumberMagnitude n + variable
         match elements with
         | Variable(variable, n)::t -> prefix + (renderVariable variable n) + (renderElements false t)
-        | Constant(n)::t -> prefix + (renderNumber n) + (renderElements false t)
+        | Constant(n)::t -> prefix + (renderNumberMagnitude n) + (renderElements false t)
         | [] -> ""
     let renderEquation = function
         | Equation(lhs, rhs) -> sprintf "%s = %s" (renderElements true lhs) (renderElements true rhs)
@@ -176,3 +180,4 @@ let solveFor variableName (Equation(lhs, rhs) as original) =
         rhs <- rhs |> List.map (mapTerm (Equation.multiply (reciprocal n)))
         Equation(lhs, rhs)
     | _ -> original // can't simplify this case
+
