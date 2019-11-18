@@ -32,6 +32,10 @@ let localInput =
         FunctionComponent.Of(
             fun (value, props, onChange) ->
                 let v = Hooks.useState value
+                Hooks.useEffect(
+                    fun () ->
+                        v.update(value) |> ignore // when value changes externally, make sure we detect that!
+                    , [|value|] )
                 let lst : IHTMLProp list = [
                     yield upcast Value v.current
                     yield upcast OnChange(fun e -> if e <> null then v.update(e.Value))
@@ -113,7 +117,6 @@ let view (m:Model.Model) dispatch =
                             for variable in variables do
                                 yield td[][
                                             let value = match entry.answers |> Map.tryFind variable with Some v -> v | _ -> ""
-                                            yield input [OnChange(fun e -> EntryValue(i, variable, e.Value) |> dispatch); Value value]
                                             yield localInput value [] (fun newValue -> EntryValue(i, variable, newValue) |> dispatch)
                                             ]
                             if not (redundant lhs) then

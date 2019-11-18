@@ -75,15 +75,12 @@ let update msg model =
                                                 | Some txt when not (System.String.IsNullOrWhiteSpace txt) -> acc
                                                 | _ -> acc |> Map.add variableName "0"
                                     ) answers
-                Browser.Dom.console.log(entry.answers |> Array.ofSeq)
                 let missing variableName =
                     match (entry.answers |> Map.tryFind variableName) with
                     | Some answer when System.String.IsNullOrWhiteSpace(answer) -> Some variableName
                     | None -> Some variableName
-                    | Some answer ->
-                        printfn "%s is already %s" variableName answer; None
-                match variables |> Seq.tryPick missing with
-                | Some missingVariable ->
+                    | Some answer -> None
+                let solve missingVariable =
                     let answers = entry.answers |> fill
                     let eval v =
                         match answers |> Map.tryFind v with
@@ -94,11 +91,12 @@ let update msg model =
                         | None -> Number(0, None)
                     let (Equation(_, solved) as e) = solveFor missingVariable eq
                     let v = evaluateElements eval solved |> renderNumber
-                    printfn "%s when %A --> %s" (renderEquation e) (answers |> Array.ofSeq) v
-                    printfn "Setting %s to %s" missingVariable v
                     let answers = answers |> Map.add missingVariable v
-                    Browser.Dom.console.log(answers |> Array.ofSeq)
                     { entry with answers = answers }
+
+                match variables |> Seq.tryPick missing with
+                | Some missingVariable -> solve missingVariable
+                | None when entry.status <> Correct && variables.Length > 0 -> solve (variables |> Array.last)
                 | None -> entry
             { model with entries = model.entries |> List.map solveEntry } |> recheckEntries |> summarize, Cmd.Empty
         | None -> model, Cmd.Empty
