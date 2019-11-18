@@ -42,6 +42,7 @@ let localInput value props onChange =
 
 let view (m:Model.Model) dispatch =
     div [ClassName "ui"][
+        h1[ClassName "header"][str "Liese's Equation Checker"]
         //div[ClassName "modeSelection"] [
         //    label[][
         //        input[Type "radio"; Name "mode"]
