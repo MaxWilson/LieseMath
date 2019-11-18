@@ -113,7 +113,7 @@ let view (m:Model.Model) dispatch =
                             ]) |> List.ofSeq
                     // If there are no blank rows, also yield some blank rows for more data entry
                     let every f x = x |> Seq.exists f |> not
-                    if m.entries |> Seq.exists (fun e -> e.answers |> every (function KeyValue(_, v) -> System.String.IsNullOrWhiteSpace v)) then
+                    if m.entries |> every (fun e -> e.answers |> every (function KeyValue(_, v) -> not <| System.String.IsNullOrWhiteSpace v)) then
                         yield tr[][
                             yield td[][]
                             for v in variables do
