@@ -42,19 +42,19 @@ let localInput value props onChange =
 
 let view (m:Model.Model) dispatch =
     div [ClassName "ui"][
-        div[ClassName "modeSelection"] [
-            label[][
-                input[Type "radio"; Name "mode"]
-                str "Homework"
-                ]
-            label[][
-                input[Type "radio"; Name "mode"]
-                str "Game mode"
-                ]
-            ]
-        div[ClassName "help"][
-            a[OnClick ignore][str "Help"]
-            ]
+        //div[ClassName "modeSelection"] [
+        //    label[][
+        //        input[Type "radio"; Name "mode"]
+        //        str "Homework"
+        //        ]
+        //    label[][
+        //        input[Type "radio"; Name "mode"]
+        //        str "Game mode"
+        //        ]
+        //    ]
+        //div[ClassName "help"][
+        //    a[OnClick ignore][str "Help"]
+        //    ]
         div[ClassName "equationEntry"][
             match m.error with
             | None ->
@@ -125,10 +125,10 @@ let view (m:Model.Model) dispatch =
                     ]
             | _ -> ()
             ]
-        div[ClassName "showAnswers"][
-            div[][
-                if m.activity = DataEntry then
-                    yield button[][str "Show answers"]
-                ]
-            ]
+        //div[ClassName "showAnswers"][
+        //    div[][
+        //        if m.activity = DataEntry then
+        //            yield button[][str "Show answers"]
+        //        ]
+        //    ]
         ]
