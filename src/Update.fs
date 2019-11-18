@@ -53,7 +53,7 @@ let update msg model =
             elif model.entries.[i].answers |> Map.tryFind variable = Some value then // no change, don't do anything to avoid messing up focus
                 model
             else
-                { model with entries = model.entries |> List.mapi(fun j e -> if i <> j then e else { e with answers = e.answers |> Map.add variable value } |> checkStatus model.formula.Value) }
+                { model with entries = model.entries |> List.mapi(fun j e -> if i <> j then e else { e with answers = e.answers |> Map.add variable value; status = Pending } |> checkStatus model.formula.Value) }
         model, Cmd.Empty
     | SolveFor variable ->
         match model.formula with
