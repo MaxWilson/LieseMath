@@ -123,4 +123,56 @@ module Parse =
         | Number(n, End) -> Some n
         | _ -> None
 
-
+open Equation
+let solveFor variableName (Equation(lhs, rhs) as original) =
+    let rec containsVariable = function
+        | Variable(v, _)::t when variableName = v -> true
+        | _:: t -> containsVariable t
+        | [] -> false
+    let mutable lhs, rhs = lhs, rhs
+    if(containsVariable rhs && not (containsVariable lhs)) then
+        let (l, r) = (rhs, lhs)
+        lhs <- l
+        rhs <- r
+    // consolidate variable references
+    let partition lst = lst |> List.partition(function Variable(v, _) when v = variableName -> true | _ -> false)
+    let addTerm term lst =
+        let mutable replaced = false
+        let lst' =
+            lst |>
+                List.fold(
+                    fun acc e ->
+                        match term, e with
+                        | Variable(v1, n1), Variable(v2, n2) when v1 = v2 ->
+                            replaced <- true
+                            if n1 = (negate n2) then acc
+                            else Variable(v1, Equation.add n1 n2)::acc
+                        | Constant(n1), Constant(n2) ->
+                            replaced <- true
+                            if n1 = (negate n2) then acc
+                            else Constant(Equation.add n1 n2)::acc
+                        | _, v -> v::acc
+                    ) [] |> List.rev
+        if replaced then lst'
+        else term::lst'
+    let consolidate lst =
+        lst |> List.fold (fun lst arg -> addTerm arg lst) []
+    let mapTerm f = function
+        | Variable(v,n) -> Variable(v, f n)
+        | Constant(n) -> Constant(f n)
+    lhs <- lhs |> consolidate
+    let keep, move = lhs |> partition
+    lhs <- keep
+    rhs <- ((move |> List.map (mapTerm Equation.negate))@rhs) |> consolidate
+    let move, keep = rhs |> partition
+    rhs <- keep
+    lhs <- ((move |> List.map (mapTerm Equation.negate))@lhs) |> consolidate
+    match lhs with
+    | Variable(v, Number(0, _))::[] ->
+        // Can't simplify this case
+        original
+    | Variable(v, n)::[] ->
+        lhs <- [Variable(v, Number(1, None))]
+        rhs <- rhs |> List.map (mapTerm (Equation.multiply (reciprocal n)))
+        Equation(lhs, rhs)
+    | _ -> original // can't simplify this case

@@ -23,6 +23,7 @@ type Cmd =
     | Formula of string
     | Error of string option
     | EntryValue of row: int * variable: string * value: string
+    | SolveFor of string option
 
 // an input-like component which stores state locally until blur
 let localInput =
@@ -94,9 +95,9 @@ let view (m:Model.Model) dispatch =
                     | _ -> false
                 yield table[][
                     yield tr[][
-                        yield th[][a [][str m.rawFormula]]
+                        yield th[][a [OnClick(fun _ -> SolveFor(None) |> dispatch)][str m.rawFormula]]
                         for v in variables do
-                            yield th[][a [][str v]]
+                            yield th[][a [OnClick(fun _ -> SolveFor(Some v) |> dispatch)][str v]]
                         if not (redundant lhs) then
                             yield th[][str (Domain.Equation.renderElements true lhs)]
                         if not (redundant rhs) then

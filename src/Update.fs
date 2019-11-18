@@ -33,6 +33,7 @@ let update msg model =
                     activity = Activity.DataEntry;
                     rawFormula = (renderEquation e);
                     formula = Some (Set.toArray variables, e)
+                    userEnteredEquation = Some e
                     entries = []
                     }, Cmd.Empty
         | _ -> { model with error = Some (sprintf "I don't understand '%s'" txt) }, Cmd.delayMsg 1000 (Error None)
@@ -48,3 +49,15 @@ let update msg model =
             else
                 { model with entries = model.entries |> List.mapi(fun j e -> if i <> j then e else { e with answers = e.answers |> Map.add variable value } |> checkStatus model.formula.Value) }
         model, Cmd.Empty
+    | SolveFor variable ->
+        match model.formula with
+        | None -> model, Cmd.Empty // shouldn't happen
+        | Some(variables, eq) ->
+            match recheckEntries =
+                { model with entries = model.entries |> List.map (fun e -> { e with status = Pending; leftOutput = None; rightOutput = None} |> checkStatus) }
+            match variable with
+            | None ->
+                { model with formula = model.userEnteredEquation |> Option.map(fun e -> variables, e) } |> recheckEntries, Cmd.Empty
+            | Some variable ->
+                { model with formula = Some(variables, eq |> Domain.solveFor variable)} |> recheckEntries, Cmd.Empty
+

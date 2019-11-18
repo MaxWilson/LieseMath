@@ -19,6 +19,7 @@ type Model = {
     activity: Activity
     rawFormula: string
     formula: (string[] * Equation) option
+    userEnteredEquation: Equation option
     entries: Entry list
     error: string option
 }
@@ -37,6 +38,7 @@ let freshEntry variable value = {
     leftOutput = None
     rightOutput = None
     status = Pending
+    userEnteredEquation = None
     }
 
 let checkStatus (variables: string[], formula: Equation) (e: Entry) =
