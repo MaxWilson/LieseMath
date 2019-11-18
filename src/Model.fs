@@ -3,7 +3,7 @@ open Fable.Import
 open Domain.Equation
 
 type Mode = Homework | Game
-type Activity = Help | EquationEntry | DataEntry
+type Activity = | EquationEntry | DataEntry
 type VariableName = string
 type Status = Correct | Incorrect | Pending
 

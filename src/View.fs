@@ -17,10 +17,10 @@ open Model
 let parseInt v radix = jsNative
 
 type Cmd =
-    | SwitchMode of Mode
-    | SwitchActivity of Activity
+    | Mode of Mode
+    | Activity of Activity
     | RawFormula of string
-    | ChangeFormula of string
+    | Formula of string
     | Error of string option
 
 let view (m:Model.Model) dispatch =
@@ -41,17 +41,32 @@ let view (m:Model.Model) dispatch =
         div[ClassName "equationEntry"][
             match m.error with
             | None ->
-                yield form[OnSubmit (fun e -> e.preventDefault(); m.rawFormula |> ChangeFormula |> dispatch)] [
-                    input[Placeholder "Enter an equation, e.g. 2y = -x + 15"; Value m.rawFormula; OnChange(fun e -> e.Value |> RawFormula |> dispatch)]
-                    button[Type "submit"][str "OK"]
-                    ]
+                match m.activity with
+                | Activity.EquationEntry ->
+                    yield form[OnSubmit (fun e -> e.preventDefault(); m.rawFormula |> Formula |> dispatch)] [
+                        FunctionComponent.Of(fun () ->
+                            let ref: IRefHook<Browser.Types.Element option> = Hooks.useRef None
+                            Hooks.useEffect(fun () ->
+                                match ref.current with
+                                | Some r ->
+                                    (r |> unbox<Browser.Types.HTMLInputElement>).blur()
+                                | None -> ()
+                                )
+                            input[AutoFocus true; Placeholder "Enter an equation, e.g. 2y = -x + 15"; Value m.rawFormula; OnChange(fun e -> e.Value |> RawFormula |> dispatch)]
+                            )()
+                        button[Type "submit"; Disabled (m.rawFormula.Length = 0)][str "OK"]
+                        ]
+                | DataEntry ->
+                    yield form[OnSubmit (fun e -> e.preventDefault(); dispatch(RawFormula ""); dispatch (Activity EquationEntry))] [
+                        input[Disabled true; Value m.rawFormula]
+                        button[Type "submit"][str "New equation"]
+                        ]
             | Some err ->
                 yield span[ClassName "error"][str err]
             ]
         div[ClassName "tableEntry"][
             match m.formula with
-            | None -> ()
-            | Some(variables, Domain.Equation.Equation(lhs, rhs)) ->
+            | Some(variables, Domain.Equation.Equation(lhs, rhs)) when m.activity = DataEntry ->
                 let redundant = function
                     | Domain.Equation.Variable(_, Domain.Equation.Number(1, (None | Some 1)))::[] -> true
                     | _ -> false
@@ -81,6 +96,7 @@ let view (m:Model.Model) dispatch =
                             yield td[][str "12"]
                         ]
                     ]
+            | _ -> ()
             ]
         div[ClassName "showAnswers"][
             div[][

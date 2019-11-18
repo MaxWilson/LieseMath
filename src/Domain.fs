@@ -69,6 +69,7 @@ module Parse =
         | _ -> None
     let (|Variable|_|) = function
         | Number(n, (Chars alpha (variableName, rest))) -> Some(Equation.Variable(variableName, n), rest)
+        | Str "-" (Chars alpha (variableName, rest)) -> Some(Equation.Variable(variableName, Number(-1, None)), rest)
         | (Chars alpha (variableName, rest)) -> Some(Equation.Variable(variableName, Number (1, None)), rest)
         | _ -> None
     let (|Plus|_|) = function
@@ -93,3 +94,4 @@ module Parse =
         match ParseArgs.Init(str) with
         | Equation(e, End) -> Some e
         | _ -> None
+
