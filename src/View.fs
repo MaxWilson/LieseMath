@@ -72,16 +72,7 @@ let view (m:Model.Model) dispatch =
                 match m.activity with
                 | Activity.EquationEntry ->
                     yield form[OnSubmit (fun e -> e.preventDefault(); m.rawFormula |> Formula |> dispatch)] [
-                        FunctionComponent.Of(fun () ->
-                            let ref: IRefHook<Browser.Types.Element option> = Hooks.useRef None
-                            Hooks.useEffect(fun () ->
-                                match ref.current with
-                                | Some r ->
-                                    (r |> unbox<Browser.Types.HTMLInputElement>).blur()
-                                | None -> ()
-                                )
-                            input[AutoFocus true; Placeholder "Enter an equation, e.g. 2y = -x + 15"; Value m.rawFormula; OnChange(fun e -> e.Value |> RawFormula |> dispatch)]
-                            )()
+                        localInput m.rawFormula [AutoFocus true; Placeholder "Enter an equation, e.g. 2y = -x + 15"] (Formula >> dispatch)
                         button[Type "submit"; Disabled (m.rawFormula.Length = 0)][str "OK"]
                         ]
                 | DataEntry ->
