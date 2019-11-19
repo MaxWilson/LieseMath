@@ -83,8 +83,9 @@ module Parse =
     open Packrat
     let (|Number|_|) =
         let (|N|_|) = function
-            | Int(n, Str "." (Int(digits, rest))) when digits < 10000 ->
-                let frac = if digits < 10 then 10 elif digits < 100 then 100 elif digits < 1000 then 1000 else 10000
+            | Int(n, Str "." (Int(digits, rest) as start)) when digits < 10000 ->
+                let digitLength = (snd rest - snd start)
+                let frac = pown 10 digitLength
                 Some(Equation.Number((n * frac) + digits, Some frac) |> Equation.simplify, rest)
             | Int(n, Str "/" (Int(d, rest))) -> Some(Equation.Number(n, Some d) |> Equation.simplify, rest)
             | Int(n, rest) -> Some(Equation.Number(n, None), rest)
