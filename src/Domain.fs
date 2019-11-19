@@ -8,6 +8,7 @@ module Equation =
     type Element = Constant of Number | Variable of symbolName: string * coefficient: Number
     type Equation = Equation of left: Element list * right: Element list
     let rec simplify = function
+        | Number(0, Some _) -> Number(0, None) |> simplify
         | Number(n, Some d) when n < 0 && d < 0 -> Number(-n, Some -d) |> simplify
         | Number(n, Some d) when d < 0 && n >= 0 -> Number(-n, Some -d) |> simplify // put negative numbers on top
         | Number(n, Some 1) -> Number(n, None) |> simplify
@@ -180,4 +181,3 @@ let solveFor variableName (Equation(lhs, rhs) as original) =
         rhs <- rhs |> List.map (mapTerm (Equation.multiply (reciprocal n)))
         Equation(lhs, rhs)
     | _ -> original // can't simplify this case
-
