@@ -18,10 +18,12 @@ let setTimeout ms callback = jsNative
 module Cmd =
     let delayMsg delayMs msg = Cmd.ofSub(fun d -> setTimeout delayMs (fun _ -> d msg))
 
+let resetEntry e =
+    { e with status = Pending; leftOutput = None; rightOutput = None }
 let recheckEntries (model: Model) =
     match model.formula with
     | Some(formula) ->
-        { model with entries = model.entries |> List.map (fun e -> { e with status = Pending; leftOutput = None; rightOutput = None } |> checkStatus formula) }
+        { model with entries = model.entries |> List.map (resetEntry >> checkStatus formula) }
     | None -> model
 
 let update msg model =
@@ -53,7 +55,7 @@ let update msg model =
             elif model.entries.[i].answers |> Map.tryFind variable = Some value then // no change, don't do anything to avoid messing up focus
                 model
             else
-                { model with entries = model.entries |> List.mapi(fun j e -> if i <> j then e else { e with answers = e.answers |> Map.add variable value; status = Pending } |> checkStatus model.formula.Value) }
+                { model with entries = model.entries |> List.mapi(fun j e -> if i <> j then e else { (resetEntry e) with answers = e.answers |> Map.add variable value } |> checkStatus model.formula.Value) }
         model, Cmd.Empty
     | SolveFor variable ->
         match model.formula with
