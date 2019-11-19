@@ -30,7 +30,7 @@ type Cmd =
 let localInput =
     let component' =
         FunctionComponent.Of(
-            fun (value, props, onChange) ->
+            fun (value, props: seq<IHTMLProp>, onChange) ->
                 let v = Hooks.useState value
                 Hooks.useEffect(
                     fun () ->
@@ -38,7 +38,13 @@ let localInput =
                     , [|value|] )
                 let lst : IHTMLProp list = [
                     yield upcast Value v.current
-                    yield upcast OnChange(fun e -> if e <> null then v.update(e.Value))
+                    match props
+                        |> Seq.choose(function :? DOMAttr as a -> Some a | _ -> None)
+                        |> Seq.tryFind(function OnChange(_) -> true | _ -> false) with
+                    | Some (OnChange event) ->
+                        yield upcast OnChange(fun e -> if e <> null then v.update(e.Value); event e)
+                    | _ ->
+                        yield upcast OnChange(fun e -> if e <> null then v.update(e.Value))
                     yield upcast OnKeyDown(fun e -> if e.keyCode = 13. then
                                                         e.preventDefault()
                                                         onChange v.current
@@ -118,7 +124,8 @@ let view (m:Model.Model) dispatch =
                         yield tr[][
                             yield td[][]
                             for v in variables do
-                                yield td[][yield localInput "" [] (fun newValue -> if not (System.String.IsNullOrWhiteSpace newValue) then (EntryValue(m.entries.Length, v, newValue) |> dispatch))]
+                                let proc newValue = if not (System.String.IsNullOrWhiteSpace newValue) then (EntryValue(m.entries.Length, v, newValue) |> dispatch)
+                                yield td[][yield localInput "" [OnChange (fun e -> e.Value |> proc)] proc]
                             if not (redundant lhs) then
                                 yield td[][]
                             if not (redundant rhs) then
